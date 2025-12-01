@@ -2,9 +2,23 @@
 #include <stdlib.h>
 #include <string.h>
 
-//rajouter les structures lorsque l'on sait
-typedef struct stockage{
+//Structures temporaires
+
+typedef struct{
+    char* id_amont;
     char* id_usine;
-    char* id_aval
-    int vol;
-}
+    char* id_aval;
+    float vol;
+    float fuites;
+} Infos;
+
+
+typedef struct chainon{   
+    Infos infos;
+    struct chainon* next;
+} Pile;
+
+typedef struct{
+    Infos infos;
+    Pile* Next;
+} Usines;
