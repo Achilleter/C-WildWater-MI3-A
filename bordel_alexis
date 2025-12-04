@@ -1,0 +1,12 @@
+int isSource = (col1[0] == '-');
+node->type = NODE_Source;
+node->volume_capted = col4;
+int isUsine = (col1[0] == '-' && col3[0] == '-' && col5[0] == '-' );
+int cap = 16;
+int count = 0;
+int *list = malloc(sizeof(int)*cap);
+for(int i = 0;i <;i++){
+    if(isSource(i)){
+
+    }
+}
