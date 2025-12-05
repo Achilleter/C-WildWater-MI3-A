@@ -12,35 +12,35 @@ typedef struct{
 
 void incrementationFICHIER( const char* nom ){
 	FILE* f = fopen( nom , "r" );
-	if( f == NULL ) exit(1);
-	
+	if( f == NULL ) {
+		printf("Erreur d'ouverture du fichier %s\n", nom);	
+		exit(1);
+	}
 	char c1[64] ,c2[64] ,c3[64] ,c4[64] ,c5[64];
-	Infos* i = malloc(sizeof(Infos));
-	if( i == NULL ) exit(1);
+	Infos i;
 	
-	while( fscanf(f , "%63[^;];%63[^;];%63[^;];%63[^;];%63[^\n]\n", c1,c2,c3,c4,c5) == 5 ){
+	while( fscanf(f , "%63[^;];%63[^;];%63[^;];%63[^;];%63[^\n]", c1,c2,c3,c4,c5) > 0 ){
 		
-		strncpy( i->id_usine , c1, 63 );
-		i->id_usine[63] = '\0';
-		strncpy( i->id_amont, c2, 63 );
-		i->id_amont[63] = '\0';
-		strncpy( i->id_aval , c3, 63 );
-		i->id_aval[63] = '\0';
+		strncpy( i.id_usine , c1, 63 );
+		i.id_usine[63] = '\0';
+		strncpy( i.id_amont, c2, 63 );
+		i.id_amont[63] = '\0';
+		strncpy( i.id_aval , c3, 63 );
+		i.id_aval[63] = '\0';
 		
-		i->vol = (strcmp( c4 , "-" )==0) ? -1.0 : atof(c4) ;
-		i->fuites = (strcmp( c5 , "-" )==0) ? -1.0 : atof(c5) ;
+		i.vol = (strcmp( c4 , "-" )==0) ? -1.0 : atof(c4) ;
+		i.fuites = (strcmp( c5 , "-" )==0) ? -1.0 : atof(c5) ;
 		
-		printf(" %s | %s | %s | %f | %f \n", i->id_usine, i->id_amont, i->id_aval, i->vol, i->fuites); 
+		printf(" %s | %s | %s | %.2f | %.2f \n", i.id_usine, i.id_amont, i.id_aval, i.vol, i.fuites); 
 	}
 	
 
-	fclose(f);	
-	free(i);
+	fclose(f);
 }
 
 
 int main() {
-    incrementationFICHIER("c-wildwater_v0(1).dat");
+    incrementationFICHIER("c-wildwater_v0 (1).dat");
     return 0;
 }
 
