@@ -1,43 +1,61 @@
 #include"Principal.h"
 
 // Fonction qui va nous perettre d'extraire les données du ficher
-FILE* incrémentationFICHIER( const char* nom ){
+void incrementationFICHIER( const char* nom ){
 	FILE* f = fopen( nom , "r" );
-	if( f == NULL ) exit(ERROR_FICHIER);
-	
-	char c1[64] ,c2[64] ,c3[64] ,c4[64] ,c5[64];
-	Infos i;
-	
-	while( fscanf(f , "%63[^;];%63[^;];%63[^;];%63[^;];%63[^\n]\n", c1,c2,c3,c4,c5) == 5 ){
-		
-		strcpy( i.id_usine , c1 );
-		strcpy( i.id_amont, c2 );
-		strcpy( i.id_aval , c3 );
-		
-		i.amont = (srtcmp( c4 , "-" )==0) ? -1.0 : atof(c4) ;
-		i.fuites = (srtcmp( c4 , "-" )==0) ? -1.0 : atof(c5) ;
-		
-		//printf(" %s | %s | %s | %f | %f \n", i.id_usine, i.id_amont, i.id_aval, i.amont, i.fuites); 
+	if( f == NULL ) {
+		printf("Erreur d'ouverture du fichier %s\n", nom);	
+		exit(1);
 	}
+	char c1[64] ,c2[64] ,c3[64] ,c4[64] ,c5[64];
+	Infos i = {0};
 	
-	fclose(f);	
-
-}
+	while( fscanf(f , "%63[^;];%63[^;];%63[^;];%63[^;];%63[^\n]", c1,c2,c3,c4,c5) > 0 ){
+		
+		strncpy( i.id_usine , c1, 63 );
+		i.id_usine[63] = '\0';
+		strncpy( i.id_amont, c2, 63 );
+		i.id_amont[63] = '\0';
+		strncpy( i.id_aval , c3, 63 );
+		i.id_aval[63] = '\0';
+		
+		i.vol = (strcmp( c4 , "-" )==0) ? -1.0 : atof(c4) ;
+		i.fuites = (strcmp( c5 , "-" )==0) ? -1.0 : atof(c5) ;
+		if( verif_S_J(&i) ){
+			printf(" %s | %s | %s | %.2f | %.2f \n", i.id_usine, i.id_amont, i.id_aval, i.vol, i.fuites); 
+		}
+	}
 
 // Les fonctions suivantes vérifient les différentes lignes du fichier
 // Cette fonction vérifie : SOURCE -> USINE
-bool verif_S-U( Infos* i ){
-	return i->id_usine==NULL && i->id_amont!=NULL && i->id_aval!=NULL && i->amont!=NULL && i->fuites!=NULL
+bool verif_S_U( Infos* i ){
+	return strcmp(i->id_usine, "-") == 0 && 
+	strcmp(i->id_amont, "-") != 0 && 
+	strcmp(i->id_aval, "-") != 0 && 
+	i->vol != -1.0 && 
+	i->fuites != -1.0;
 }
 // Cette fonction vérifie : USINE
 bool verif_U( Infos* i ){
-	return i->id_usine==NULL && i->id_amont!=NULL && i->id_aval==NULL && i->amont!=NULL && i->fuites==NULL
+	return strcmp(i->id_usine, "-")==0 && 
+	strcmp(i->id_amont, "-")!=0 && 
+	strcmp(i->id_aval, "-")==0 && 
+	i->vol!=-1.0 && 
+	i->fuites==-1.0;
 }
 // Cette fonction vérifie : USINE->STOCKAGE
-bool verif_U( Infos* i ){
-	return i->id_usine==NULL && i->id_amont!=NULL && i->id_aval!=NULL && i->amont==NULL && i->fuites!=NULL
+bool verif_U_S( Infos* i ){
+	return strcmp(i->id_usine, "-")==0 && 
+	strcmp(i->id_amont, "-")!=0 && 
+	strcmp(i->id_aval, "-")!=0 && 
+	i->vol==-1.0 && 
+	i->fuites!=-1.0;
 }
 // Cette fonction vérifie : STOCKAGE->JONCTION
-bool verif_U( Infos* i ){
-	return i->id_usine!=NULL && i->id_amont!=NULL && i->id_aval!=NULL && i->amont==NULL && i->fuites!=NULL
+bool verif_S_J( Infos* i ){
+	return strcmp(i->id_usine, "-")!=0 && 
+	strcmp(i->id_amont, "-")!=0 && 
+	strcmp(i->id_aval, "-")!=0 && 
+	i->vol==-1.0 && 
+	i->fuites!=-1.0;
 }
