@@ -51,25 +51,42 @@ void incrementationFICHIER( const char* nom ){
 		printf("Erreur d'ouverture du fichier %s\n", nom);	
 		exit(1);
 	}
+
 	char c1[64] ,c2[64] ,c3[64] ,c4[64] ,c5[64];
-	Infos i = {0};
-	
-	while( fscanf(f , "%63[^;];%63[^;];%63[^;];%63[^;];%63[^\n]", c1,c2,c3,c4,c5) > 0 ){
-		
+	Infos i;
+
+	while( 1 ){
+		// Initialisation des chaînes de caractères à "-" avant le fscanf
+		strcpy(c1,"-");
+		strcpy(c2,"-");
+		strcpy(c3,"-");
+		strcpy(c4,"-");
+		strcpy(c5,"-");
+
+		int n = fscanf(f , "%63[^;];%63[^;];%63[^;];%63[^;];%63[^\n]", c1,c2,c3,c4,c5);
+
+		if (n == EOF){
+			break;
+		}
+
+		while ( fgetc(f) != '\n' && fgetc(f) != EOF); // Nous permet de prendre la ligne au complet & fgetc nous permet de lire le caractère suivant sur la ligne
+
 		strncpy( i.id_usine , c1, 63 );
 		i.id_usine[63] = '\0';
+
 		strncpy( i.id_amont, c2, 63 );
 		i.id_amont[63] = '\0';
+
 		strncpy( i.id_aval , c3, 63 );
 		i.id_aval[63] = '\0';
 		
 		i.vol = (strcmp( c4 , "-" )==0) ? -1.0 : atof(c4) ;
 		i.fuites = (strcmp( c5 , "-" )==0) ? -1.0 : atof(c5) ;
+
 		if( verif_U(&i) ){
 			printf(" %s | %s | %s | %.2f | %.2f \n", i.id_usine, i.id_amont, i.id_aval, i.vol, i.fuites); 
 		}
 	}
-	
 
 	fclose(f);
 }
