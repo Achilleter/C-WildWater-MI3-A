@@ -1,12 +1,74 @@
-int isSource = (col1[0] == '-');
-node->type = NODE_Source;
-node->volume_capted = col4;
-int isUsine = (col1[0] == '-' && col3[0] == '-' && col5[0] == '-' );
-int cap = 16;
-int count = 0;
-int *list = malloc(sizeof(int)*cap);
-for(int i = 0;i <;i++){
-    if(isSource(i)){
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
+//Structures temporaires
+
+typedef struct{
+	char* id_usine ; //Colonne 1
+	char* id_amont ; //Colonne 2
+	char* id_aval ; //Colonne 3
+	float vol ; //Colonne 4 si prblm mettre en double
+	float fuites ; //Colonne 5
+} Infos;
+
+typedef struct Pile{
+    Infos infos;
+    Pile* enfants;
+    struct Pile* next;
+} Pile;
+
+typedef struct UsineAVL {
+    char* id;
+    float vol_max;
+    float vol_sources;
+    float vol_reel;
+    int hauteur;
+    struct UsineAVL* gauche;
+    struct UsineAVL* droite;
+} UsineAVL;
+
+int traiter_fichier(const char* nom){
+    FILE* f = fopen(nom, "r"); 
+    char* ligne = NULL; 
+    size_t llen=0; 
+    size_t r;
+    while((r = getline(&ligne, &llen, f)) != -1){
+        char* cols[5] = {NULL,NULL,NULL,NULL,NULL};
+        char* p = ligne;
+        for(int i=0;i<4;i++){
+            char* sep = strchr(p, ';');
+            if(sep){ 
+                *sep='\0'; 
+                cols[i]=p; 
+                p = sep+1; 
+            }
+            else { 
+                cols[i]=p; 
+                p=NULL; 
+                break; 
+            }
+        }
+        if(p) cols[4]=p;
+        char* col1 = cols[0];
+        char* col2 = cols[1];
+        char* col3 = cols[2];
+        char* col4 = cols[3];
+        char* col5 = cols[4];
+        if(!col2){
+            for(int i=0;i<5;i++) if(cols[i]) free(cols[i]);
+        }
+        if(usine){
+            UsineAVL* u = avl_creer(col2);
+            if(u) u->vol_max += cap;
+        }
+        if(source->usine){
+            u->vol_sources += col4;
+            double reel = col4 * (1 - col5/100);
+            u->vol_reel += reel;
+        }
     }
+    free(ligne);
+    fclose(f);
+    return 0;
 }
