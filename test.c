@@ -90,7 +90,60 @@ void incrementationFICHIER( const char* nom ){
 
 	fclose(f);
 }
+//-----------------------------------------------------------------------------------
 
+typedef struct Pile{
+    Infos infos;
+    struct Pile* suivant;
+} Pile;
+
+Pile makePile( Infos info ){
+    Pile p;
+    p.infos = info;
+    p.enfants = NULL;
+    p.next = NULL;
+    return p;
+}
+
+
+Pile* ajoutPile( Pile* tete, Infos info ){
+    Pile* nouveau = (Pile*)malloc( sizeof(Pile) );
+    if( nouveau == NULL ){
+        printf("Erreur d'allocation mémoire\n");
+        exit(1);
+    }
+    *nouveau = makePile( info );
+    nouveau->next = tete;
+    return nouveau;
+}
+
+Pile makeAVL( Pile* tete , Infos i ){
+    if( tete == NULL && verif_S_U( &i ) ){
+        Pile p = makePile( i );
+        return p;
+    }
+    else if( verif_S_U(&tete->infos) && verif_U( &i ) && strcmp( tete->infos.id_aval , i.id_amont ) == 0 ){
+        Pile p = makePile( i );
+        tete->enfants = ajoutPile( tete->enfants , i );
+        return p;
+    }
+
+    else if( verif_U( &tete->enfants->infos ) && verif_U_S( &i ) && strcmp( tete->infos.id_amont, i.id_amont ) == 0 ){
+        Pile p = makePile( i );
+        tete->enfants->enfants = ajoutPile( tete->enfants->enfants , i );
+        return p;
+    }
+
+    else if( verif_U_S( &tete->enfants->infos ) && verif_S_J( &i ) && strcmp( tete->infos.id_amont, i.id_usine ) == 0 ){
+        Pile p = makePile( i );
+        tete->enfants->enfants = ajoutPile( tete->enfants->enfants , i );
+        return p;
+    }
+    
+    printf("Erreur de structure ou de liaison entre les éléments\n");
+    exit(1);
+}
+//-----------------------------------------------------------------------------------
 
 int main() {
     incrementationFICHIER("c-wildwater_v0 (1).dat");

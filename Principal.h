@@ -19,10 +19,3 @@ typedef struct Pile{
 } Pile;
 
 //-------------------------------------------
-Infos* makeInfos(char* usine, char* id_amont, char* aval , int amont, float fuites ){
-	Infos* i = malloc(sizeof( Infos ));
-
-
-
-
-}
