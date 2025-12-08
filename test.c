@@ -44,14 +44,15 @@ bool verif_S_J( Infos* i ){
 	i->vol==-1.0 && 
 	i->fuites!=-1.0;
 }
-
+//-----------------------------------------------------------------------------------
 void incrementationFICHIER( const char* nom ){
 	FILE* f = fopen( nom , "r" );
 	if( f == NULL ) {
 		printf("Erreur d'ouverture du fichier %s\n", nom);	
 		exit(1);
 	}
-
+	
+	Infos i;
 	char c1[64] ,c2[64] ,c3[64] ,c4[64] ,c5[64];
 
 	while( 1 ){
@@ -68,9 +69,8 @@ void incrementationFICHIER( const char* nom ){
 			break;
 		}
 		
-		while ( fgetc(f) != '\n' && fgetc(f) != EOF); // Nous permet de prendre la ligne au complet & fgetc nous permet de lire le caractère suivant sur la ligne
-		
-		Infos i;
+		int ch;
+		while ((ch = fgetc(f)) != '\n' && ch != EOF); // Nous permet de prendre la ligne au complet & fgetc nous permet de lire le caractère suivant sur la ligne
 		
 		strncpy( i.id_usine , c1, 63 );
 		i.id_usine[63] = '\0';
@@ -97,7 +97,19 @@ void incrementationFICHIER( const char* nom ){
 	fclose(f);
 }
 //-----------------------------------------------------------------------------------
+int main(int argc, char** argv) {
+	if (argc < 2) {
+		fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
+		return 1;
+	}
+	const char *name = argv[1];
+	
+	incrementationFICHIER(name);
+	return 0;
+}
 
+//-----------------------------------------------------------------------------------
+/*
 typedef struct Pile{
     Infos infos;
     struct Pile* enfants;
@@ -123,7 +135,7 @@ Pile* ajoutPile( Pile* tete, Infos info ){
     nouveau->suivant = tete;
     return nouveau;
 }
-
+//-----------------------------------------------------------------------------------
 Pile makeAVL( Pile* tete , Infos i ){
     if( tete == NULL && verif_S_U( &i ) ){
         Pile p = makePile( i );
@@ -150,9 +162,5 @@ Pile makeAVL( Pile* tete , Infos i ){
     printf("Erreur de structure ou de liaison entre les éléments\n");
     exit(1);
 }
+*/
 //-----------------------------------------------------------------------------------
-
-int main() {
-    incrementationFICHIER("c-wildwater_v0 (1).dat");
-    return 0;
-}
