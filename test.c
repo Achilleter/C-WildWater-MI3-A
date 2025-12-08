@@ -7,7 +7,7 @@ typedef struct{
 	char id_usine[64] ; //Colonne 1
 	char id_amont[64] ; //Colonne 2
 	char id_aval[64] ; //Colonne 3
-	float vol ; //Colonne 4 si prblm mettre en double
+	float vol ; //Colonne 4 
 	float fuites ; //Colonne 5
 } Infos;
 
@@ -53,7 +53,6 @@ void incrementationFICHIER( const char* nom ){
 	}
 
 	char c1[64] ,c2[64] ,c3[64] ,c4[64] ,c5[64];
-	Infos i;
 
 	while( 1 ){
 		// Initialisation des chaînes de caractères à "-" avant le fscanf
@@ -68,9 +67,11 @@ void incrementationFICHIER( const char* nom ){
 		if (n == EOF){
 			break;
 		}
-
+		
 		while ( fgetc(f) != '\n' && fgetc(f) != EOF); // Nous permet de prendre la ligne au complet & fgetc nous permet de lire le caractère suivant sur la ligne
-
+		
+		Infos i;
+		
 		strncpy( i.id_usine , c1, 63 );
 		i.id_usine[63] = '\0';
 
@@ -84,16 +85,22 @@ void incrementationFICHIER( const char* nom ){
 		i.fuites = (strcmp( c5 , "-" )==0) ? -1.0 : atof(c5) ;
 
 		if( verif_U(&i) ){
-			printf(" %s | %s | %s | %.2f | %.2f \n", i.id_usine, i.id_amont, i.id_aval, i.vol, i.fuites); 
-		}
-	}
+			printf("%s | %s | %s | ",i.id_usine, i.id_amont, i.id_aval);
+			
+			if (i.vol == -1.0 ) printf("- | ");
+			else printf("%.2f | ", i.vol);
 
+			if (i.fuites == -1.0 ) printf("-\n");
+			else printf("%.2f\n", i.fuites);
+		} 
+	} 
 	fclose(f);
 }
 //-----------------------------------------------------------------------------------
 
 typedef struct Pile{
     Infos infos;
+    struct Pile* enfants;
     struct Pile* suivant;
 } Pile;
 
@@ -101,7 +108,7 @@ Pile makePile( Infos info ){
     Pile p;
     p.infos = info;
     p.enfants = NULL;
-    p.next = NULL;
+    p.suivant = NULL;
     return p;
 }
 
@@ -113,7 +120,7 @@ Pile* ajoutPile( Pile* tete, Infos info ){
         exit(1);
     }
     *nouveau = makePile( info );
-    nouveau->next = tete;
+    nouveau->suivant = tete;
     return nouveau;
 }
 
