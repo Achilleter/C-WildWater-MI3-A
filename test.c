@@ -11,6 +11,22 @@ typedef struct{
 	float fuites ; //Colonne 5
 } Infos;
 
+typedef struct s_pile{
+    Infos infos;
+    struct s_pile* enfants;
+    struct s_pile* next;
+} Pile;
+
+typedef struct UsineAVL {
+    char* id;
+    float vol_max;
+    float vol_sources;
+    float vol_reel;
+    int hauteur;
+    struct UsineAVL* gauche;
+    struct UsineAVL* droite;
+} UsineAVL;
+// ---------------------------------------------------------------------------------------------
 // Les fonctions suivantes vérifient les différentes lignes du fichier
 // Cette fonction vérifie : SOURCE -> USINE
 bool verif_S_U( Infos* i ){
@@ -44,8 +60,192 @@ bool verif_S_J( Infos* i ){
 	i->vol==-1.0 && 
 	i->fuites!=-1.0;
 }
-//-----------------------------------------------------------------------------------
-void incrementationFICHIER( const char* nom ){
+// ---------------------------------------------------------------------------------------------
+
+UsineAVL* creerAVL( char* x ){
+
+	UsineAVL* nouveau = malloc( sizeof( UsineAVL ) );
+	if( nouveau == NULL ) exit( EXIT_FAILURE );
+	
+	nouveau->id = strcpy(x);
+	nouveau->vol_max = 0 ;
+	nouveau->vol_sources = 0;
+	nouveau->vol_reel = 0 ;
+	nouveau->hauteur = 0 ;
+	
+	nouveau->gauche = NULL ;
+	nouveau->droite = NULL ;
+
+	return nouveau;
+
+}
+UsineAVL* rotationGauche(UsineAVL* a)
+{
+    UsineAVL* pivot = a->fd; // Le fils droit devient le pivot
+    int eq_a = a->eq, eq_p = pivot->eq;
+
+    a->fd = pivot->fg; // Le sous-arbre gauche du pivot devient le fils droit de `a`
+    pivot->fg = a;     // `a` devient le fils gauche du pivot
+
+    // Mise à jour des facteurs d'équilibre
+    a->eq = eq_a - max(eq_p, 0) - 1;
+    pivot->eq = min3(eq_a - 2, eq_a + eq_p - 2, eq_p - 1);
+
+    return pivot; // Le pivot devient la nouvelle racine
+}
+UsineAVL* rotationDroite(UsineAVL* a)
+{
+    UsineAVL* pivot = a->fg; // Le fils gauche devient le pivot
+    int eq_a = a->eq, eq_p = pivot->eq;
+
+    a->fg = pivot->fd; // Le sous-arbre droit du pivot devient le fils gauche de `a`
+    pivot->fd = a;     // `a` devient le fils droit du pivot
+
+    // Mise à jour des facteurs d'équilibre
+    a->eq = eq_a - min(eq_p, 0) + 1;
+    pivot->eq = max3(eq_a + 2, eq_a + eq_p + 2, eq_p + 1);
+
+    return pivot; // Le pivot devient la nouvelle racine
+}
+UsineAVL* doubleRotationGauche(UsineAVL* a)
+{
+    a->fd = rotationDroite(a->fd);
+    return rotationGauche(a);
+}
+UsineAVL* doubleRotationDroite(UsineAVL* a)
+{
+    a->fg = rotationGauche(a->fg);
+    return rotationDroite(a);
+}
+UsineAVL* equilibrerAVL(UsineAVL* a)
+{
+    if (a->eq >= 2)
+    { // Cas où l'arbre est déséquilibré à droite
+        if (a->fd->eq >= 0)
+        {
+            return rotationGauche(a); // Rotation simple gauche
+        }
+        else
+        {
+            return doubleRotationGauche(a); // Double rotation gauche
+        }
+    }
+    else if (a->eq <= -2)
+    { // Cas où l'arbre est déséquilibré à gauche
+        if (a->fg->eq <= 0)
+        {
+            return rotationDroite(a); // Rotation simple droite
+        }
+        else
+        {
+            return doubleRotationDroite(a); // Double rotation droite
+        }
+    }
+    return a; // Aucun rééquilibrage nécessaire
+}
+
+UsineAVL* insertionAVL(UsineAVL* a, Infos e, int *h)
+{
+    if (a == NULL)
+    {           // Si l'arbre est vide, crée un nouveau nœud
+        *h = 1; // La hauteur a augmenté
+        return creerAVL(e);
+    }
+    else if (e < a->value)
+    { // Si l'élément est plus petit, insérer à gauche
+        a->fg = insertionAVL(a->fg, e, h);
+        *h = -*h; // Inverse l'impact de la hauteur
+    }
+    else if (e > a->value)
+    { // Si l'élément est plus grand, insérer à droite
+        a->fd = insertionAVL(a->fd, e, h);
+    }
+    else
+    { // Élément déjà présent
+        *h = 0;
+        return a;
+    }
+
+    // Mise à jour du facteur d'équilibre et rééquilibrage si nécessaire
+    if (*h != 0)
+    {
+        a->eq += *h;
+        a = equilibrerAVL(a);
+        *h = (a->eq == 0) ? 0 : 1; // Mise à jour de la hauteur
+    }
+    return a;
+}
+
+UsineAVL* suppMinAVL(AVL* a, int *h, int *pe)
+{
+    AVL* temp;
+    if (a->fg == NULL)
+    {                   // Trouvé le plus petit élément
+        *pe = a->value; // Sauvegarde la valeur
+        *h = -1;        // Réduction de la hauteur
+        temp = a;
+        a = a->fd; // Le sous-arbre droit devient la racine
+        free(temp);
+        return a;
+    }
+    else
+    {
+        a->fg = suppMinAVL(a->fg, h, pe); // Recherche récursive à gauche
+        *h = -*h;
+    }
+
+    // Mise à jour et rééquilibrage après suppression
+    if (*h != 0)
+    {
+        a->eq += *h;
+        a = equilibrerAVL(a);
+        *h = (a->eq == 0) ? -1 : 0;
+    }
+    return a;
+}
+
+void traiter( UsineAVL* a){
+	if( a ){
+		printf(" id : %s \n Vol_max : %f \n Vol_src : %f \n Vol_reel : %f \n ", a->id, a->vol_max; a->vol_sources; a->vol_reel);
+	}
+}
+
+void parcoursPostfixe(UsineAVL a) {
+    if (a) {
+        if (existeFilsGauche(a)) {
+            parcoursPostfixe(a->fg); // Parcours du fils gauche
+        }
+        if (existeFilsDroit(a)) {
+            parcoursPostfixe(a->fd); // Parcours du fils droit
+        }
+    }
+    traiter(a);                 // Affiche la valeur du nœud après ses fils
+}
+
+
+// ---------------------------------------------------------------------------------------------
+UsineAVL* histo_max( UsineAVL* u , Infos i ){
+	u = creerAVL( i.id_amont );
+	if(u) u->vol_max += i.vol;
+	return u;
+}
+
+UsineAVL* histo_src( UsineAVL* u , Infos i ){
+	u = creerAVL( i.id_aval );
+	u->vol_sources += i.vol;
+	return u;
+}
+
+UsineAVL* histo_reel( UsineAVL* u , Infos i ){
+	u = creerAVL( i.id_aval );
+	u->vol_sources += i.vol;
+	double reel = i.vol * (1 - i.fuites/100);
+	u->vol_reel += reel;
+	return u;
+}
+// ---------------------------------------------------------------------------------------------
+void incrementationFICHIER( const char* nom , const char* arg1 , const char* arg2){
+
 	FILE* f = fopen( nom , "r" );
 	if( f == NULL ) {
 		printf("Erreur d'ouverture du fichier %s\n", nom);	
@@ -53,6 +253,7 @@ void incrementationFICHIER( const char* nom ){
 	}
 	
 	Infos i;
+	UsineAVL* u = NULL;
 	char c1[64] ,c2[64] ,c3[64] ,c4[64] ,c5[64];
 
 	while( 1 ){
@@ -83,84 +284,66 @@ void incrementationFICHIER( const char* nom ){
 		
 		i.vol = (strcmp( c4 , "-" )==0) ? -1.0 : atof(c4) ;
 		i.fuites = (strcmp( c5 , "-" )==0) ? -1.0 : atof(c5) ;
-
-		if( verif_U(&i) ){
-			printf("%s | %s | %s | ",i.id_usine, i.id_amont, i.id_aval);
-			
-			if (i.vol == -1.0 ) printf("- | ");
-			else printf("%.2f | ", i.vol);
-
-			if (i.fuites == -1.0 ) printf("-\n");
-			else printf("%.2f\n", i.fuites);
-		} 
+		
+		if( verif_S_U(&i) ){
+			u = insertionAVL( u , i , u->hauteur );
+		}
+		
+		
 	} 
+	parcoursPostfixe(u);
 	fclose(f);
 }
-//-----------------------------------------------------------------------------------
+
+/*
+if( verif_U(&i) && strcmp(arg1, "histo") == 0 && strcmp(arg2, "max") == 0 ){
+			UsineAVL* u = NULL;
+			u = histo_max( u , i );
+		}
+		
+		if( verif_S_U(&i) ){
+			if( strcmp(arg1, "histo") == 0 && strcmp(arg2, "src") == 0 ){
+				UsineAVL* u = NULL;
+				u = histo_src( u , i );
+			}
+			else if( strcmp(arg1, "histo") == 0 && strcmp(arg2, "reel") != 0){
+				UsineAVL* u = NULL;
+				u = histo_reel( u , i );
+			}
+		}
+*/
+
+
+
+
+
+
+
+// ---------------------------------------------------------------------------------------------
 int main(int argc, char** argv) {
 	if (argc < 2) {
-		fprintf(stderr, "Usage: %s <filename>\n", argv[0]);
+		fprintf(stderr, "Usage: %s \n", argv[0]);
 		return 1;
 	}
 	const char *name = argv[1];
+	const char *fonction = argv[2];
+	const char *details = argv[3];
 	
-	incrementationFICHIER(name);
+	
+	if( strcmp(fonction, "histo") != 0 && strcmp(fonction, "leaks") != 0 ){
+		printf("Erreur dans le 2ème argument\n");
+		return 1;
+	}
+	
+	else if ( strcmp(fonction, "histo") == 0 &&
+        (strcmp(details, "max") != 0 &&
+         strcmp(details, "src") != 0 &&
+         strcmp(details, "real") != 0) ){
+		printf("Erreur dans le 3ème argument\n");
+		return 1;
+	}
+	
+	
+	incrementationFICHIER(name, fonction , details );
 	return 0;
 }
-
-//-----------------------------------------------------------------------------------
-/*
-typedef struct Pile{
-    Infos infos;
-    struct Pile* enfants;
-    struct Pile* suivant;
-} Pile;
-
-Pile makePile( Infos info ){
-    Pile p;
-    p.infos = info;
-    p.enfants = NULL;
-    p.suivant = NULL;
-    return p;
-}
-
-
-Pile* ajoutPile( Pile* tete, Infos info ){
-    Pile* nouveau = (Pile*)malloc( sizeof(Pile) );
-    if( nouveau == NULL ){
-        printf("Erreur d'allocation mémoire\n");
-        exit(1);
-    }
-    *nouveau = makePile( info );
-    nouveau->suivant = tete;
-    return nouveau;
-}
-//-----------------------------------------------------------------------------------
-Pile makeAVL( Pile* tete , Infos i ){
-    if( tete == NULL && verif_S_U( &i ) ){
-        Pile p = makePile( i );
-        return p;
-    }
-    else if( verif_S_U(&tete->infos) && verif_U( &i ) && strcmp( tete->infos.id_aval , i.id_amont ) == 0 ){
-        Pile p = makePile( i );
-        tete->enfants = ajoutPile( tete->enfants , i );
-        return p;
-    }
-
-    else if( verif_U( &tete->enfants->infos ) && verif_U_S( &i ) && strcmp( tete->infos.id_amont, i.id_amont ) == 0 ){
-        Pile p = makePile( i );
-        tete->enfants->enfants = ajoutPile( tete->enfants->enfants , i );
-        return p;
-    }
-
-    else if( verif_U_S( &tete->enfants->infos ) && verif_S_J( &i ) && strcmp( tete->infos.id_amont, i.id_usine ) == 0 ){
-        Pile p = makePile( i );
-        tete->enfants->enfants = ajoutPile( tete->enfants->enfants , i );
-        return p;
-    }
-    
-    printf("Erreur de structure ou de liaison entre les éléments\n");
-    exit(1);
-}
-*/
-//-----------------------------------------------------------------------------------
