@@ -24,6 +24,6 @@ typedef struct avl_struct
     int eq;                // Facteur d'équilibre (balance factor)
     struct avl_struct *fg; // Pointeur vers le fils gauche
     struct avl_struct *fd; // Pointeur vers le fils droit
-} AVL;
+} AVLeaks;
 
 //-------------------------------------------
