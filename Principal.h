@@ -12,15 +12,17 @@ typedef struct{
 	float fuites ; //Colonne 5
 } Infos;
 
-typedef struct Pile{
+typedef struct chainon{
     Infos infos;
-    struct Pile* enfants;
-    struct Pile* next;
-} Pile;
+    struct chainon* premier_enfant;
+    struct chainon* dernier_enfant;
+    struct chainon* next;
+} Noeud;
 
 typedef struct avl_struct
 {
-    Pile* val;             // La valeur du nœud
+    char id_usine[64]; // id de l'usine pour comparaison
+    Noeud* val;             // La valeur du nœud
     int eq;                // Facteur d'équilibre (balance factor)
     struct avl_struct *fg; // Pointeur vers le fils gauche
     struct avl_struct *fd; // Pointeur vers le fils droit
