@@ -61,13 +61,13 @@ bool verif_S_J( Infos* i ){
 	i->fuites!=-1.0;
 }
 // ---------------------------------------------------------------------------------------------
-
 UsineAVL* creerAVL( char* x ){
 
 	UsineAVL* nouveau = malloc( sizeof( UsineAVL ) );
 	if( nouveau == NULL ) exit( EXIT_FAILURE );
 	
-	nouveau->id = strcpy(x);
+	nouveau->id = malloc( sizeof( srtlen(x) + 1 ) );
+    strcpy(nouveau->id,x);
 	nouveau->vol_max = 0 ;
 	nouveau->vol_sources = 0;
 	nouveau->vol_reel = 0 ;
@@ -82,28 +82,28 @@ UsineAVL* creerAVL( char* x ){
 UsineAVL* rotationGauche(UsineAVL* a)
 {
     UsineAVL* pivot = a->fd; // Le fils droit devient le pivot
-    int eq_a = a->eq, eq_p = pivot->eq;
+    int eq_a = a->hauteur, eq_p = pivot->hauteur;
 
     a->fd = pivot->fg; // Le sous-arbre gauche du pivot devient le fils droit de `a`
     pivot->fg = a;     // `a` devient le fils gauche du pivot
 
     // Mise à jour des facteurs d'équilibre
-    a->eq = eq_a - max(eq_p, 0) - 1;
-    pivot->eq = min3(eq_a - 2, eq_a + eq_p - 2, eq_p - 1);
+    a->hauteur = eq_a - max(eq_p, 0) - 1;
+    pivot->hauteur = min3(eq_a - 2, eq_a + eq_p - 2, eq_p - 1);
 
     return pivot; // Le pivot devient la nouvelle racine
 }
 UsineAVL* rotationDroite(UsineAVL* a)
 {
     UsineAVL* pivot = a->fg; // Le fils gauche devient le pivot
-    int eq_a = a->eq, eq_p = pivot->eq;
+    int eq_a = a->hauteur, eq_p = pivot->hauteur;
 
     a->fg = pivot->fd; // Le sous-arbre droit du pivot devient le fils gauche de `a`
     pivot->fd = a;     // `a` devient le fils droit du pivot
 
     // Mise à jour des facteurs d'équilibre
-    a->eq = eq_a - min(eq_p, 0) + 1;
-    pivot->eq = max3(eq_a + 2, eq_a + eq_p + 2, eq_p + 1);
+    a->hauteur = eq_a - min(eq_p, 0) + 1;
+    pivot->hauteur = max3(eq_a + 2, eq_a + eq_p + 2, eq_p + 1);
 
     return pivot; // Le pivot devient la nouvelle racine
 }
@@ -143,7 +143,6 @@ UsineAVL* equilibrerAVL(UsineAVL* a)
     }
     return a; // Aucun rééquilibrage nécessaire
 }
-
 UsineAVL* insertionAVL(UsineAVL* a, Infos e, int *h)
 {
     if (a == NULL)
@@ -175,7 +174,6 @@ UsineAVL* insertionAVL(UsineAVL* a, Infos e, int *h)
     }
     return a;
 }
-
 UsineAVL* suppMinAVL(AVL* a, int *h, int *pe)
 {
     AVL* temp;
@@ -203,13 +201,11 @@ UsineAVL* suppMinAVL(AVL* a, int *h, int *pe)
     }
     return a;
 }
-
 void traiter( UsineAVL* a){
 	if( a ){
 		printf(" id : %s \n Vol_max : %f \n Vol_src : %f \n Vol_reel : %f \n ", a->id, a->vol_max; a->vol_sources; a->vol_reel);
 	}
 }
-
 void parcoursPostfixe(UsineAVL a) {
     if (a) {
         if (existeFilsGauche(a)) {
@@ -221,8 +217,6 @@ void parcoursPostfixe(UsineAVL a) {
     }
     traiter(a);                 // Affiche la valeur du nœud après ses fils
 }
-
-
 // ---------------------------------------------------------------------------------------------
 UsineAVL* histo_max( UsineAVL* u , Infos i ){
 	u = creerAVL( i.id_amont );
@@ -294,7 +288,6 @@ void incrementationFICHIER( const char* nom , const char* arg1 , const char* arg
 	parcoursPostfixe(u);
 	fclose(f);
 }
-
 /*
 if( verif_U(&i) && strcmp(arg1, "histo") == 0 && strcmp(arg2, "max") == 0 ){
 			UsineAVL* u = NULL;
@@ -312,18 +305,11 @@ if( verif_U(&i) && strcmp(arg1, "histo") == 0 && strcmp(arg2, "max") == 0 ){
 			}
 		}
 */
-
-
-
-
-
-
-
 // ---------------------------------------------------------------------------------------------
 int main(int argc, char** argv) {
 	if (argc < 2) {
 		fprintf(stderr, "Usage: %s \n", argv[0]);
-		return 1;
+		return 0;
 	}
 	const char *name = argv[1];
 	const char *fonction = argv[2];
@@ -332,7 +318,7 @@ int main(int argc, char** argv) {
 	
 	if( strcmp(fonction, "histo") != 0 && strcmp(fonction, "leaks") != 0 ){
 		printf("Erreur dans le 2ème argument\n");
-		return 1;
+		return 0;
 	}
 	
 	else if ( strcmp(fonction, "histo") == 0 &&
@@ -340,7 +326,7 @@ int main(int argc, char** argv) {
          strcmp(details, "src") != 0 &&
          strcmp(details, "real") != 0) ){
 		printf("Erreur dans le 3ème argument\n");
-		return 1;
+		return 0;
 	}
 	
 	
