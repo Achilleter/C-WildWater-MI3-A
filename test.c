@@ -17,15 +17,31 @@ typedef struct s_pile{
     struct s_pile* next;
 } Pile;
 
+typedef struct usine{
+	char* id;
+	float vol_max;
+	float vol_sources;
+	float vol_reel;
+	int hauteur;
+}Usine;
+
 typedef struct UsineAVL {
-    char* id;
-    float vol_max;
-    float vol_sources;
-    float vol_reel;
-    int hauteur;
-    struct UsineAVL* gauche;
-    struct UsineAVL* droite;
+    Usine u;
+    struct UsineAVL* fg;
+    struct UsineAVL* fd;
 } UsineAVL;
+
+int max(int a, int b) { return a > b ? a : b; }
+int min(int a, int b) { return a < b ? a : b; }
+
+int max3(int a, int b, int c) {
+    return max(max(a, b), c);
+}
+int min3(int a, int b, int c) {
+    return min(min(a, b), c);
+}
+
+
 // ---------------------------------------------------------------------------------------------
 // Les fonctions suivantes vérifient les différentes lignes du fichier
 // Cette fonction vérifie : SOURCE -> USINE
@@ -66,46 +82,48 @@ UsineAVL* creerAVL( char* x ){
 	UsineAVL* nouveau = malloc( sizeof( UsineAVL ) );
 	if( nouveau == NULL ) exit( EXIT_FAILURE );
 	
-	nouveau->id = malloc( sizeof( srtlen(x) + 1 ) );
-    strcpy(nouveau->id,x);
-	nouveau->vol_max = 0 ;
-	nouveau->vol_sources = 0;
-	nouveau->vol_reel = 0 ;
-	nouveau->hauteur = 0 ;
+	nouveau->u.id = malloc( strlen(x) + 1);
+	if (!nouveau->u.id) exit(EXIT_FAILURE);
+		strcpy(nouveau->u.id,x);
+		
+	nouveau->u.vol_max = 0 ;
+	nouveau->u.vol_sources = 0;
+	nouveau->u.vol_reel = 0 ;
+	nouveau->u.hauteur = 0 ;
 	
-	nouveau->gauche = NULL ;
-	nouveau->droite = NULL ;
+	nouveau->fg = NULL ;
+	nouveau->fd = NULL ;
 
 	return nouveau;
 
 }
 UsineAVL* rotationGauche(UsineAVL* a)
 {
-    UsineAVL* pivot = a->fd; // Le fils droit devient le pivot
-    int eq_a = a->hauteur, eq_p = pivot->hauteur;
+	UsineAVL* pivot = a->fd; // Le fils droit devient le pivot
+	int eq_a = a->u.hauteur, eq_p = pivot->u.hauteur;
 
-    a->fd = pivot->fg; // Le sous-arbre gauche du pivot devient le fils droit de `a`
-    pivot->fg = a;     // `a` devient le fils gauche du pivot
+	a->fd = pivot->fg; // Le sous-arbre gauche du pivot devient le fils droit de `a`
+	pivot->fg = a;     // `a` devient le fils gauche du pivot
 
-    // Mise à jour des facteurs d'équilibre
-    a->hauteur = eq_a - max(eq_p, 0) - 1;
-    pivot->hauteur = min3(eq_a - 2, eq_a + eq_p - 2, eq_p - 1);
+	// Mise à jour des facteurs d'équilibre
+	a->u.hauteur = eq_a - max(eq_p, 0) - 1;
+	pivot->u.hauteur = min3(eq_a - 2, eq_a + eq_p - 2, eq_p - 1);
 
-    return pivot; // Le pivot devient la nouvelle racine
+	return pivot; // Le pivot devient la nouvelle racine
 }
 UsineAVL* rotationDroite(UsineAVL* a)
 {
-    UsineAVL* pivot = a->fg; // Le fils gauche devient le pivot
-    int eq_a = a->hauteur, eq_p = pivot->hauteur;
+	UsineAVL* pivot = a->fg; // Le fils gauche devient le pivot
+	int eq_a = a->u.hauteur, eq_p = pivot->u.hauteur;
 
-    a->fg = pivot->fd; // Le sous-arbre droit du pivot devient le fils gauche de `a`
-    pivot->fd = a;     // `a` devient le fils droit du pivot
+	a->fg = pivot->fd; // Le sous-arbre droit du pivot devient le fils gauche de `a`
+	pivot->fd = a;     // `a` devient le fils droit du pivot
 
-    // Mise à jour des facteurs d'équilibre
-    a->hauteur = eq_a - min(eq_p, 0) + 1;
-    pivot->hauteur = max3(eq_a + 2, eq_a + eq_p + 2, eq_p + 1);
+	// Mise à jour des facteurs d'équilibre
+	a->u.hauteur = eq_a - min(eq_p, 0) + 1;
+	pivot->u.hauteur = max3(eq_a + 2, eq_a + eq_p + 2, eq_p + 1);
 
-    return pivot; // Le pivot devient la nouvelle racine
+	return pivot; // Le pivot devient la nouvelle racine
 }
 UsineAVL* doubleRotationGauche(UsineAVL* a)
 {
@@ -119,123 +137,119 @@ UsineAVL* doubleRotationDroite(UsineAVL* a)
 }
 UsineAVL* equilibrerAVL(UsineAVL* a)
 {
-    if (a->eq >= 2)
-    { // Cas où l'arbre est déséquilibré à droite
-        if (a->fd->eq >= 0)
-        {
-            return rotationGauche(a); // Rotation simple gauche
-        }
-        else
-        {
-            return doubleRotationGauche(a); // Double rotation gauche
-        }
-    }
-    else if (a->eq <= -2)
-    { // Cas où l'arbre est déséquilibré à gauche
-        if (a->fg->eq <= 0)
-        {
-            return rotationDroite(a); // Rotation simple droite
-        }
-        else
-        {
-            return doubleRotationDroite(a); // Double rotation droite
-        }
-    }
-    return a; // Aucun rééquilibrage nécessaire
+	if (a->u.hauteur >= 2)
+	{ // Cas où l'arbre est déséquilibré à droite
+		if (a->fd->u.hauteur >= 0)
+		{
+			return rotationGauche(a); // Rotation simple gauche
+		}
+		else
+		{
+			return doubleRotationGauche(a); // Double rotation gauche
+		}
+	}
+	else if (a->u.hauteur <= -2)
+	{ // Cas où l'arbre est déséquilibré à gauche
+		if (a->fg->u.hauteur <= 0)
+		{
+			return rotationDroite(a); // Rotation simple droite
+		}
+		else
+		{
+			return doubleRotationDroite(a); // Double rotation droite
+		}
+	}
+	return a; // Aucun rééquilibrage nécessaire
 }
 UsineAVL* insertionAVL(UsineAVL* a, Infos e, int *h)
 {
-    if (a == NULL)
-    {           // Si l'arbre est vide, crée un nouveau nœud
-        *h = 1; // La hauteur a augmenté
-        return creerAVL(e);
-    }
-    else if (e < a->value)
-    { // Si l'élément est plus petit, insérer à gauche
-        a->fg = insertionAVL(a->fg, e, h);
-        *h = -*h; // Inverse l'impact de la hauteur
-    }
-    else if (e > a->value)
-    { // Si l'élément est plus grand, insérer à droite
-        a->fd = insertionAVL(a->fd, e, h);
-    }
-    else
-    { // Élément déjà présent
-        *h = 0;
-        return a;
-    }
+	if (a == NULL){           // Si l'arbre est vide, crée un nouveau nœud
+		*h = 1; // La hauteur a augmenté
+		return creerAVL(e.id_usine);
+	}
+	int cmp = strcmp(e.id_usine, a->u.id);
+	if (cmp < 0) {
+		a->fg = insertionAVL(a->fg, e, h);
+		*h = -*h;
+	}
+	else if (cmp > 0) {
+		a->fd = insertionAVL(a->fd, e, h);
+	}
+	else {
+		*h = 0;
+	return a;
+	}
 
-    // Mise à jour du facteur d'équilibre et rééquilibrage si nécessaire
-    if (*h != 0)
-    {
-        a->eq += *h;
-        a = equilibrerAVL(a);
-        *h = (a->eq == 0) ? 0 : 1; // Mise à jour de la hauteur
-    }
-    return a;
+	// Mise à jour du facteur d'équilibre et rééquilibrage si nécessaire
+	if (*h != 0){
+		a->u.hauteur += *h;
+		a = equilibrerAVL(a);
+		*h = (a->u.hauteur == 0) ? 0 : 1; // Mise à jour de la hauteur
+	}
+	return a;
 }
-UsineAVL* suppMinAVL(AVL* a, int *h, int *pe)
+UsineAVL* suppMinAVL(UsineAVL* a, int *h, int *pe)
 {
-    AVL* temp;
-    if (a->fg == NULL)
-    {                   // Trouvé le plus petit élément
-        *pe = a->value; // Sauvegarde la valeur
-        *h = -1;        // Réduction de la hauteur
-        temp = a;
-        a = a->fd; // Le sous-arbre droit devient la racine
-        free(temp);
-        return a;
-    }
-    else
-    {
-        a->fg = suppMinAVL(a->fg, h, pe); // Recherche récursive à gauche
-        *h = -*h;
-    }
+	UsineAVL* temp;
+	if (a->fg == NULL)
+	{                   // Trouvé le plus petit élément
+		*h = -1;        // Réduction de la hauteur
+		temp = a;
+		a = a->fd; // Le sous-arbre droit devient la racine
+		free(temp->u.id);
+		free(temp);
+		return a;
+	}
+	else
+	{
+		a->fg = suppMinAVL(a->fg, h, pe); // Recherche récursive à gauche
+		*h = -*h;
+	}
 
-    // Mise à jour et rééquilibrage après suppression
-    if (*h != 0)
-    {
-        a->eq += *h;
-        a = equilibrerAVL(a);
-        *h = (a->eq == 0) ? -1 : 0;
-    }
-    return a;
+	// Mise à jour et rééquilibrage après suppression
+	if (*h != 0)
+	{
+		a->u.hauteur += *h;
+		a = equilibrerAVL(a);
+		*h = (a->u.hauteur == 0) ? -1 : 0;
+	}
+	return a;
 }
 void traiter( UsineAVL* a){
 	if( a ){
-		printf(" id : %s \n Vol_max : %f \n Vol_src : %f \n Vol_reel : %f \n ", a->id, a->vol_max; a->vol_sources; a->vol_reel);
+		printf(" id : %s \n Vol_max : %f \n Vol_src : %f \n Vol_reel : %f \n ", a->u.id, a->u.vol_max, a->u.vol_sources, a->u.vol_reel);
 	}
 }
-void parcoursPostfixe(UsineAVL a) {
-    if (a) {
-        if (existeFilsGauche(a)) {
+void parcoursPostfixe(UsineAVL* a) {
+    if (a!=NULL) {
+        if (a->fg){
             parcoursPostfixe(a->fg); // Parcours du fils gauche
         }
-        if (existeFilsDroit(a)) {
+        if (a->fd) {
             parcoursPostfixe(a->fd); // Parcours du fils droit
         }
     }
     traiter(a);                 // Affiche la valeur du nœud après ses fils
 }
 // ---------------------------------------------------------------------------------------------
-UsineAVL* histo_max( UsineAVL* u , Infos i ){
-	u = creerAVL( i.id_amont );
-	if(u) u->vol_max += i.vol;
-	return u;
+UsineAVL* histo_max( UsineAVL* Usine , Infos i ){
+	Usine = creerAVL( i.id_amont );
+	if(Usine) Usine->u.vol_max += i.vol;
+	return Usine;
 }
 
-UsineAVL* histo_src( UsineAVL* u , Infos i ){
-	u = creerAVL( i.id_aval );
-	u->vol_sources += i.vol;
-	return u;
+UsineAVL* histo_src( UsineAVL* Usine , Infos i ){
+	Usine = creerAVL( i.id_aval );
+	Usine->u.vol_sources += i.vol;
+	return Usine;
 }
 
-UsineAVL* histo_reel( UsineAVL* u , Infos i ){
-	u = creerAVL( i.id_aval );
-	u->vol_sources += i.vol;
+UsineAVL* histo_reel( UsineAVL* Usine , Infos i ){
+	Usine = creerAVL( i.id_aval );
+	Usine->u.vol_sources += i.vol;
 	double reel = i.vol * (1 - i.fuites/100);
-	u->vol_reel += reel;
-	return u;
+	Usine->u.vol_reel += reel;
+	return Usine;
 }
 // ---------------------------------------------------------------------------------------------
 void incrementationFICHIER( const char* nom , const char* arg1 , const char* arg2){
@@ -280,7 +294,8 @@ void incrementationFICHIER( const char* nom , const char* arg1 , const char* arg
 		i.fuites = (strcmp( c5 , "-" )==0) ? -1.0 : atof(c5) ;
 		
 		if( verif_S_U(&i) ){
-			u = insertionAVL( u , i , u->hauteur );
+			int h = 0;
+			u = insertionAVL( u , i , &h );
 		}
 		
 		
