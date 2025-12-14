@@ -1,74 +1,205 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-//Structures temporaires
+#include <stdbool.h>
 
 typedef struct{
-	char* id_usine ; //Colonne 1
-	char* id_amont ; //Colonne 2
-	char* id_aval ; //Colonne 3
-	float vol ; //Colonne 4 si prblm mettre en double
-	float fuites ; //Colonne 5
+    char id_usine[64];   // colonne 1
+    char id_amont[64];   // colonne 2
+    char id_aval[64];    // colonne 3
+    float vol;           // colonne 4
+    float fuites;        // colonne 5
 } Infos;
 
-typedef struct Pile{
-    Infos infos;
-    Pile* enfants;
-    struct Pile* next;
-} Pile;
-
-typedef struct UsineAVL {
+typedef struct usine{
     char* id;
     float vol_max;
     float vol_sources;
     float vol_reel;
-    int hauteur;
-    struct UsineAVL* gauche;
-    struct UsineAVL* droite;
-} UsineAVL;
+    int hauteur;   // facteur d’équilibre
+} Usine;
 
-int traiter_fichier(const char* nom){
-    FILE* f = fopen(nom, "r"); 
-    char* ligne = NULL; 
-    size_t len=0; 
-    size_t r;
-    while((r = getline(&ligne, &len, f)) != -1){  //getline() lit une ligne entière depuis le fichier f, &ligne : pointeur où stocker la ligne,si ligne == NULL, getline alloue automatiquement la mémoire &len,getline() retourne : le nombre de caractères lus,si tout va bien,-1 si : erreur de lecture
-        char* cols[5] = {NULL,NULL,NULL,NULL,NULL};
-        char* p = ligne;
-        for(int i=0;i<4;i++){
-            char* sep = strchr(p, ';');
-            if(sep){ 
-                *sep='\0'; 
-                cols[i]=p; 
-                p = sep+1; 
-            }
-            else { 
-                cols[i]=p; 
-                p=NULL; 
-                break; 
-            }
+typedef struct AVL {
+    Usine u;
+    struct AVL* fg;
+    struct AVL* fd;
+} AVL;
+
+int max(int a, int b){ return a > b ? a : b; }
+int min(int a, int b){ return a < b ? a : b; }
+
+int max3(int a, int b, int c){
+    return max(max(a,b),c);
+}
+int min3(int a, int b, int c){
+    return min(min(a,b),c);
+}
+
+bool verif_S_U( Infos* i ){
+	return strcmp(i->id_usine, "-") == 0 && 
+	strcmp(i->id_amont, "-") != 0 && 
+	strcmp(i->id_aval, "-") != 0 && 
+	i->vol != -1.0 && 
+	i->fuites != -1.0;
+}
+
+bool verif_U( Infos* i ){
+	return strcmp(i->id_usine, "-")==0 && 
+	strcmp(i->id_amont, "-")!=0 && 
+	strcmp(i->id_aval, "-")==0 && 
+	i->vol!=-1.0 && 
+	i->fuites==-1.0;
+}
+
+AVL* creerAVL(const char* id){
+    AVL* n = malloc(sizeof(AVL));
+    if(!n) exit(EXIT_FAILURE);
+    n->u.id = malloc(strlen(id)+1);
+    strcpy(n->u.id, id);
+    n->u.vol_max = 0;
+    n->u.vol_sources = 0;
+    n->u.vol_reel = 0;
+    n->u.hauteur = 0;
+
+    n->fg = n->fd = NULL;
+    return n;
+}
+
+
+AVL* rotationGauche(AVL* a){
+    AVL* p = a->fd;
+    int eq_a = a->u.hauteur;
+    int eq_p = p->u.hauteur;
+    a->fd = p->fg;
+    p->fg = a;
+    a->u.hauteur = eq_a - max(eq_p,0) - 1;
+    p->u.hauteur = min3(eq_a-2, eq_a+eq_p-2, eq_p-1);
+    return p;
+}
+
+AVL* rotationDroite(AVL* a){
+    AVL* p = a->fg;
+    int eq_a = a->u.hauteur;
+    int eq_p = p->u.hauteur;
+
+    a->fg = p->fd;
+    p->fd = a;
+
+    a->u.hauteur = eq_a - min(eq_p,0) + 1;
+    p->u.hauteur = max3(eq_a+2, eq_a+eq_p+2, eq_p+1);
+
+    return p;
+}
+
+AVL* doubleRotationGauche(AVL* a){
+    a->fd = rotationDroite(a->fd);
+    return rotationGauche(a);
+}
+
+AVL* doubleRotationDroite(AVL* a){
+    a->fg = rotationGauche(a->fg);
+    return rotationDroite(a);
+}
+
+AVL* equilibrerAVL(AVL* a){
+    if(a->u.hauteur >= 2){
+        if(a->fd->u.hauteur >= 0)
+            return rotationGauche(a);
+        else
+            return doubleRotationGauche(a);
+    }
+    else if(a->u.hauteur <= -2){
+        if(a->fg->u.hauteur <= 0)
+            return rotationDroite(a);
+        else
+            return doubleRotationDroite(a);
+    }
+    return a;
+}
+
+
+AVL* insertionAVL(AVL* a, const char* id, int* h){
+    if(!a){
+        *h = 1;
+        return creerAVL(id);
+    }
+
+    int cmp = strcmp(id, a->u.id);
+    if(cmp < 0){
+        a->fg = insertionAVL(a->fg, id, h);
+        *h = -*h;
+    }
+    else if(cmp > 0){
+        a->fd = insertionAVL(a->fd, id, h);
+    }
+    else{
+        *h = 0;
+        return a; // déjà existante
+    }
+
+    if(*h){
+        a->u.hauteur += *h;
+        a = equilibrerAVL(a);
+        *h = (a->u.hauteur == 0) ? 0 : 1;
+    }
+    return a;
+}
+
+AVL* rechercherAVL(AVL* a, const char* id){
+    if(!a) return NULL;
+    int cmp = strcmp(id, a->u.id);
+    if(cmp == 0) return a;
+    if(cmp < 0) return rechercherAVL(a->fg, id);
+    return rechercherAVL(a->fd, id);
+}
+
+AVL* get_or_create(AVL** racine, const char* id){
+    AVL* u = rechercherAVL(*racine, id);
+    if(!u){
+        int h = 0;
+        *racine = insertionAVL(*racine, id, &h);
+        u = rechercherAVL(*racine, id);
+    }
+    return u;
+}
+
+
+void afficherAVL(AVL* a){
+    if(!a) return;
+    afficherAVL(a->fg);
+    printf("Usine %s | Max %.2f | Src %.2f | Reel %.2f\n",
+           a->u.id, a->u.vol_max, a->u.vol_sources, a->u.vol_reel);
+    afficherAVL(a->fd);
+}
+
+void incrementationFICHIER(const char* nom){
+    FILE* f = fopen(nom,"r");
+    if(!f) exit(EXIT_FAILURE);
+    AVL* racine = NULL;
+    Infos i;
+    char c1[64],c2[64],c3[64],c4[64],c5[64];
+    while(fscanf(f,"%63[^;];%63[^;];%63[^;];%63[^;];%63[^\n]",
+                 c1,c2,c3,c4,c5)==5){
+        while(fgetc(f)!='\n' && !feof(f));
+        strcpy(i.id_usine,c1);
+        strcpy(i.id_amont,c2);
+        strcpy(i.id_aval,c3);
+        i.vol    = strcmp(c4,"-")==0 ? -1 : atof(c4);
+        i.fuites = strcmp(c5,"-")==0 ? -1 : atof(c5);
+        if(verif_U(&i)){
+            AVL* u = get_or_create(&racine, i.id_amont);
+            u->u.vol_max += i.vol;
         }
-        if(p) cols[4]=p;
-        char* col1 = cols[0];
-        char* col2 = cols[1];
-        char* col3 = cols[2];
-        char* col4 = cols[3];
-        char* col5 = cols[4];
-        if(!col2){
-            for(int i=0;i<5;i++) if(cols[i]) free(cols[i]);
-        }
-        if(usine){
-            UsineAVL* u = avl_creer(col2);
-            if(u) u->vol_max += cap;
-        }
-        if(source->usine){
-            u->vol_sources += col4;
-            double reel = col4 * (1 - col5/100);
-            u->vol_reel += reel;
+        else if(verif_S_U(&i)){
+            AVL* u = get_or_create(&racine, i.id_aval);
+            u->u.vol_sources += i.vol;
+            u->u.vol_reel += i.vol * (1 - i.fuites/100);
         }
     }
-    free(ligne);
+    afficherAVL(racine);
     fclose(f);
-    return 0;
 }
+
+
+
+
