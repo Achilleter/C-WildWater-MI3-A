@@ -26,6 +26,7 @@ typedef struct AVL {
 } AVL;
 
 int max(int a, int b){ return a > b ? a : b; }
+
 int min(int a, int b){ return a < b ? a : b; }
 
 int max3(int a, int b, int c){
@@ -60,7 +61,6 @@ AVL* creerAVL(const char* id){
     n->u.vol_sources = 0;
     n->u.vol_reel = 0;
     n->u.hauteur = 0;
-
     n->fg = n->fd = NULL;
     return n;
 }
@@ -81,13 +81,10 @@ AVL* rotationDroite(AVL* a){
     AVL* p = a->fg;
     int eq_a = a->u.hauteur;
     int eq_p = p->u.hauteur;
-
     a->fg = p->fd;
     p->fd = a;
-
     a->u.hauteur = eq_a - min(eq_p,0) + 1;
     p->u.hauteur = max3(eq_a+2, eq_a+eq_p+2, eq_p+1);
-
     return p;
 }
 
