@@ -152,32 +152,126 @@ void afficherAVL(AVL* a){
     afficherAVL(a->fd);
 }
 // ---------------------------------------------------------------------------------------------
-void histo_max( AVL* Usine ){
-	if(Usine){
-		if( Usine->u.vol_max < Usine->fg->u.vol_max ) histo_max( Usine->fg );
-		if( Usine->u.vol_max < Usine->fd->u.vol_max ) histo_max( Usine->fd );
-		else{
-			printf("\nHisto max : %.2f \n\n", Usine->u.vol_max);
+//	HISTO MAX
+void histo_maxMAX(AVL* Avl_U, Usine tab_max[]) {
+	if (Avl_U == NULL) return;
+
+	if (Avl_U->u.vol_max > tab_max[0].vol_max) {
+		tab_max[0] = Avl_U->u;
+
+		// Réordonner (croissant)
+		for (int i = 0; i < 9; i++) {
+			if (tab_max[i].vol_max > tab_max[i + 1].vol_max) {
+				Usine tmp = tab_max[i];
+				tab_max[i] = tab_max[i + 1];
+				tab_max[i + 1] = tmp;
+			}
 		}
 	}
+
+	histo_maxMAX(Avl_U->fg, tab_max);
+	histo_maxMAX(Avl_U->fd, tab_max);
 }
 
-void histo_src( AVL* Usine ){
-	if(Usine){
-		histo_src(Usine->fd);
-		histo_src(Usine->fg);
-		printf("\nHisto source : %.2f \n\n", Usine->u.vol_sources);
+void histo_maxMIN(AVL* Avl_U, Usine tab_min[]) {
+	if (Avl_U == NULL) return;
+
+	if (Avl_U->u.vol_max < tab_min[0].vol_max) {
+		tab_min[0] = Avl_U->u;
+
+		// Réordonner (décroissant)
+		for (int i = 0; i < 49; i++) {
+			if (tab_min[i].vol_max < tab_min[i + 1].vol_max) {
+				Usine tmp = tab_min[i];
+				tab_min[i] = tab_min[i + 1];
+				tab_min[i + 1] = tmp;
+			}
+		}
 	}
-}
 
-void histo_reel( AVL* Usine){
-	if(Usine){
-		histo_reel(Usine->fd);
-		histo_reel(Usine->fg);
-		printf("\nHisto réel : %.2f \n\n", Usine->u.vol_reel);
+	histo_maxMIN(Avl_U->fg, tab_min);
+	histo_maxMIN(Avl_U->fd, tab_min);
+}
+//	HISTO SRC
+void histo_srcMAX(AVL* Avl_U, Usine tab_max[]) {
+	if (Avl_U == NULL) return;
+
+	if (Avl_U->u.vol_sources > tab_max[0].vol_sources) {
+		tab_max[0] = Avl_U->u;
+
+		// Réordonner (croissant)
+		for (int i = 0; i < 9; i++) {
+			if (tab_max[i].vol_sources > tab_max[i + 1].vol_sources) {
+				Usine tmp = tab_max[i];
+				tab_max[i] = tab_max[i + 1];
+				tab_max[i + 1] = tmp;
+			}
+		}
 	}
+
+	histo_srcMAX(Avl_U->fg, tab_max);
+	histo_srcMAX(Avl_U->fd, tab_max);
 }
 
+void histo_srcMIN(AVL* Avl_U, Usine tab_min[]) {
+	if (Avl_U == NULL) return;
+
+	if (Avl_U->u.vol_sources < tab_min[0].vol_sources) {
+		tab_min[0] = Avl_U->u;
+
+		// Réordonner (décroissant)
+		for (int i = 0; i < 49; i++) {
+			if (tab_min[i].vol_sources < tab_min[i + 1].vol_sources) {
+				Usine tmp = tab_min[i];
+				tab_min[i] = tab_min[i + 1];
+				tab_min[i + 1] = tmp;
+			}
+		}
+	}
+
+	histo_srcMIN(Avl_U->fg, tab_min);
+	histo_srcMIN(Avl_U->fd, tab_min);
+}
+//	HISTO REAL
+void histo_reelMAX(AVL* Avl_U, Usine tab_max[]) {
+	if (Avl_U == NULL) return;
+
+	if (Avl_U->u.vol_reel > tab_max[0].vol_reel) {
+		tab_max[0] = Avl_U->u;
+
+		// Réordonner (croissant)
+		for (int i = 0; i < 9; i++) {
+			if (tab_max[i].vol_reel > tab_max[i + 1].vol_reel) {
+				Usine tmp = tab_max[i];
+				tab_max[i] = tab_max[i + 1];
+				tab_max[i + 1] = tmp;
+			}
+		}
+	}
+
+	histo_reelMAX(Avl_U->fg, tab_max);
+	histo_reelMAX(Avl_U->fd, tab_max);
+}
+
+void histo_reelMIN(AVL* Avl_U, Usine tab_min[]) {
+	if (Avl_U == NULL) return;
+
+	if (Avl_U->u.vol_reel < tab_min[0].vol_reel) {
+		tab_min[0] = Avl_U->u;
+
+		// Réordonner (décroissant)
+		for (int i = 0; i < 49; i++) {
+			if (tab_min[i].vol_reel < tab_min[i + 1].vol_reel) {
+				Usine tmp = tab_min[i];
+				tab_min[i] = tab_min[i + 1];
+				tab_min[i + 1] = tmp;
+			}
+		}
+	}
+
+	histo_reelMIN(Avl_U->fg, tab_min);
+	histo_reelMIN(Avl_U->fd, tab_min);
+}
 // ---------------------------------------------------------------------------------------------
 void incrementationFICHIER( const char* nom , const char* arg1 , const char* arg2){
 
@@ -231,16 +325,69 @@ void incrementationFICHIER( const char* nom , const char* arg1 , const char* arg
 	}
 	if (strcmp(arg1, "histo") == 0) {
 			if (strcmp(arg2, "max") == 0) {
-				histo_max(u);
+				Usine tab_max[10];
+				for (int i = 0; i < 10; i++) tab_max[i].vol_max = -1;
+
+				histo_maxMAX(u, tab_max);
+
+				Usine tab_min[50];
+				for (int i = 0; i < 50; i++) tab_min[i].vol_max = tab_max[0].vol_max;
+
+				histo_maxMIN(u, tab_min);
+				
+				
+				printf("HISTO MAX \nMax \n");
+				for( int i = 0 ; i<10 ; i++ ){
+					printf(" %d, %s , %.2f \n", i+1, tab_max[i].id, tab_max[i].vol_max);
+				}
+				printf("\n Min: \n");
+				for( int i = 0 ; i<50 ; i++ ){
+					printf(" %d, %s , %.2f \n", i+1, tab_min[i].id, tab_min[i].vol_max);
+				}
 			}
 			else if (strcmp(arg2, "src") == 0) {
-				histo_src(u);
+				Usine tab_max[10];
+				for (int i = 0; i < 10; i++) tab_max[i].vol_sources = -1;
+
+				histo_srcMAX(u, tab_max);
+
+				Usine tab_min[50];
+				for (int i = 0; i < 50; i++) tab_min[i].vol_sources = tab_max[0].vol_sources;
+
+				histo_srcMIN(u, tab_min);
+				
+				
+				printf("HISTO SRC \nMax \n");
+				for( int i = 0 ; i<10 ; i++ ){
+					printf(" %d, %s , %.2f \n", i+1, tab_max[i].id, tab_max[i].vol_sources);
+				}
+				printf("\n Min: \n");
+				for( int i = 0 ; i<50 ; i++ ){
+					printf(" %d, %s , %.2f \n", i+1, tab_min[i].id, tab_min[i].vol_sources);
+				}
 			}
 			else if (strcmp(arg2, "real") == 0) {
-				histo_reel(u);
+				Usine tab_max[10];
+				for (int i = 0; i < 10; i++) tab_max[i].vol_reel = -1;
+
+				histo_reelMAX(u, tab_max);
+
+				Usine tab_min[50];
+				for (int i = 0; i < 50; i++) tab_min[i].vol_reel = tab_max[0].vol_reel;
+
+				histo_reelMIN(u, tab_min);
+				
+				
+				printf("HISTO SRC \nMax \n");
+				for( int i = 0 ; i<10 ; i++ ){
+					printf(" %d, %s , %.2f \n", i+1, tab_max[i].id, tab_max[i].vol_reel);
+				}
+				printf("\n Min: \n");
+				for( int i = 0 ; i<50 ; i++ ){
+					printf(" %d, %s , %.2f \n", i+1, tab_min[i].id, tab_min[i].vol_reel);
+				}
 			}
 		}
-	afficherAVL(u);
 	fclose(f);
 }
 // ---------------------------------------------------------------------------------------------
