@@ -152,29 +152,32 @@ void afficherAVL(AVL* a){
     afficherAVL(a->fd);
 }
 // ---------------------------------------------------------------------------------------------
-AVL* histo_max( AVL* Usine , Infos i ){
-	int h = 0;
-	Usine = insertionAVL( Usine, i.id_amont , &h );
-	if(Usine) Usine->u.vol_max += i.vol;
-	return Usine;
+void histo_max( AVL* Usine ){
+	if(Usine){
+		if( Usine->u.vol_max < Usine->fg->u.vol_max ) histo_max( Usine->fg );
+		if( Usine->u.vol_max < Usine->fd->u.vol_max ) histo_max( Usine->fd );
+		else{
+			printf("\nHisto max : %.2f \n\n", Usine->u.vol_max);
+		}
+	}
 }
 
-AVL* histo_src( AVL* Usine , Infos i ){
-	int h = 0;
-	Usine = insertionAVL( Usine, i.id_aval , &h );
-	Usine->u.vol_sources += i.vol;
-	return Usine;
+void histo_src( AVL* Usine ){
+	if(Usine){
+		histo_src(Usine->fd);
+		histo_src(Usine->fg);
+		printf("\nHisto source : %.2f \n\n", Usine->u.vol_sources);
+	}
 }
 
-AVL* histo_reel( AVL* Usine , Infos i ){
-	int h = 0;
-	strcpy(i.id_usine, i.id_aval);
-	Usine = insertionAVL(Usine, i.id_aval , &h);
-	double reel = i.vol * (1 - i.fuites/100);
-	Usine->u.vol_sources += i.vol;
-	Usine->u.vol_reel += reel;
-	return Usine;
+void histo_reel( AVL* Usine){
+	if(Usine){
+		histo_reel(Usine->fd);
+		histo_reel(Usine->fg);
+		printf("\nHisto réel : %.2f \n\n", Usine->u.vol_reel);
+	}
 }
+
 // ---------------------------------------------------------------------------------------------
 void incrementationFICHIER( const char* nom , const char* arg1 , const char* arg2){
 
@@ -183,9 +186,8 @@ void incrementationFICHIER( const char* nom , const char* arg1 , const char* arg
 		printf("Erreur d'ouverture du fichier %s\n", nom);	
 		exit(1);
 	}
-	
+	AVL* u = NULL ;
 	Infos i;
-	AVL* u = NULL;
 	char c1[64] ,c2[64] ,c3[64] ,c4[64] ,c5[64];
 
 	while( 1 ){
@@ -217,21 +219,27 @@ void incrementationFICHIER( const char* nom , const char* arg1 , const char* arg
 		i.vol = (strcmp( c4 , "-" )==0) ? -1.0 : atof(c4) ;
 		i.fuites = (strcmp( c5 , "-" )==0) ? -1.0 : atof(c5) ;
 		
-		if (strcmp(arg1, "histo") == 0) {
-			if (verif_S_U(&i) && strcmp(arg2, "max") == 0) {
-				u = histo_max(u, i);
+		if(verif_U(&i)){
+		    AVL * v = get_or_create(&u, i.id_amont);
+		    v->u.vol_max += i.vol;
+		}
+		else if(verif_S_U(&i)){
+		    AVL * v  = get_or_create(&u, i.id_aval);
+		    v->u.vol_sources += i.vol;
+		    v->u.vol_reel += i.vol * (1 - i.fuites/100);
+		}	
+	}
+	if (strcmp(arg1, "histo") == 0) {
+			if (strcmp(arg2, "max") == 0) {
+				histo_max(u);
 			}
-			else if (verif_S_U(&i) && strcmp(arg2, "src") == 0) {
-				u = histo_src(u, i);
+			else if (strcmp(arg2, "src") == 0) {
+				histo_src(u);
 			}
-			else if (verif_S_U(&i) && strcmp(arg2, "real") == 0) {
-				u = histo_reel(u, i);
+			else if (strcmp(arg2, "real") == 0) {
+				histo_reel(u);
 			}
 		}
-
-		
-		
-	} 
 	afficherAVL(u);
 	fclose(f);
 }
