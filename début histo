@@ -1,0 +1,37 @@
+void ecrire_fichier_histo(const char *nom,Usine *tab_max, int nmax,Usine *tab_min, int nmin,int type){
+    FILE *f = fopen(nom, "w");
+    if (f == NULL) {
+        exit(1);
+    }
+    for (int i = 0; i < nmax; i++) {
+        if (tab_max[i].id != NULL) {
+            double v;
+            if (type == 0) {
+                v = tab_max[i].vol_max;
+            }
+            else if (type == 1) {
+                v = tab_max[i].vol_sources;
+            }
+            else {
+                v = tab_max[i].vol_reel;
+            }
+            fprintf(f, "%s %.2f max\n", tab_max[i].id, v);
+        }
+    }
+    for (int i = 0; i < nmin; i++) {
+        if (tab_min[i].id != NULL) {
+            double v;
+            if (type == 0) {
+                v = tab_min[i].vol_max;
+            }
+            else if (type == 1) {
+                v = tab_min[i].vol_sources;
+            }
+            else {
+                v = tab_min[i].vol_reel;
+            }
+            fprintf(f, "%s %.2f min\n", tab_min[i].id, v);
+        }
+    }
+    fclose(f);
+}
