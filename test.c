@@ -191,7 +191,8 @@ void histo_maxMAX(AVL* Avl_U, Usine* tab_max) {
 void histo_maxMIN(AVL* Avl_U, Usine* tab_min) {
     if (Avl_U == NULL) return;
 
-    if (Avl_U->u.vol_max < tab_min[49].vol_max) {
+    if (tab_min[49].id == NULL || Avl_U->u.vol_max < tab_min[49].vol_max){
+    	if(tab_min[48].id == NULL) tab_min[48] = tab_min[49];
         tab_min[49] = Avl_U->u;
 
         // Réordonner pour que tab_min[0] ait le plus petit vol_max
@@ -233,7 +234,8 @@ void histo_srcMAX(AVL* Avl_U, Usine* tab_max) {
 void histo_srcMIN(AVL* Avl_U, Usine* tab_min) {
     if (Avl_U == NULL) return;
 
-    if (Avl_U->u.vol_sources < tab_min[49].vol_sources) {
+    if (tab_min[49].id == NULL || Avl_U->u.vol_sources < tab_min[49].vol_sources){
+    	if(tab_min[48].id == NULL) tab_min[48] = tab_min[49];
         tab_min[49] = Avl_U->u;
 
         // Réordonner pour que tab_min[0] ait le plus petit vol_sources
@@ -273,9 +275,10 @@ void histo_reelMAX(AVL* Avl_U, Usine* tab_max) {
 }
 
 void histo_reelMIN(AVL* Avl_U, Usine* tab_min) {
-    if (Avl_U == NULL) return;
+	if (Avl_U == NULL) return;
 
-    if (Avl_U->u.vol_reel < tab_min[49].vol_reel) {
+	if (tab_min[49].id == NULL || Avl_U->u.vol_reel < tab_min[49].vol_reel){
+    	if(tab_min[48].id == NULL) tab_min[48] = tab_min[49];
         tab_min[49] = Avl_U->u;
 
         // Réordonner pour que tab_min[0] ait le plus petit vol_reel
@@ -356,8 +359,9 @@ void incrementationFICHIER( const char* nom , const char* arg1 , const char* arg
 				histo_maxMAX(u, tab_max);
 
 				Usine tab_min[50];
-				for (int i = 0; i < 50; i++){
-					tab_min[i].vol_max = tab_max[9].vol_max;
+				tab_min[49]= tab_max[9];
+				for (int i = 0; i < 49; i++){
+					tab_min[i].vol_max= 1e9;
 					tab_min[i].id = NULL;
 				}
 
@@ -387,8 +391,9 @@ void incrementationFICHIER( const char* nom , const char* arg1 , const char* arg
 				histo_srcMAX(u, tab_max);
 
 				Usine tab_min[50];
-				for (int i = 0; i < 50; i++){
-					tab_min[i].vol_sources = tab_max[9].vol_sources;
+				tab_min[49]= tab_max[9];
+				for (int i = 0; i < 49; i++){
+					tab_min[i].vol_sources= 1e9;
 					tab_min[i].id = NULL;
 				}
 
@@ -418,7 +423,8 @@ void incrementationFICHIER( const char* nom , const char* arg1 , const char* arg
 				histo_reelMAX(u, tab_max);
 
 				Usine tab_min[50];
-				for (int i = 0; i < 50; i++){
+				tab_min[49]= tab_max[9];
+				for (int i = 0; i < 49; i++){
 					tab_min[i].vol_reel= 1e9;
 					tab_min[i].id = NULL;
 				}
