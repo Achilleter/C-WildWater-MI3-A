@@ -1,8 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define MAX_ID 64
+
+typedef struct{
+	char id_usine[64] ; //Colonne 1
+	char id_amont[64] ; //Colonne 2
+	char id_aval[64] ; //Colonne 3
+	float vol ; //Colonne 4 
+	float fuites ; //Colonne 5
+} Infos;
+
 typedef struct Noeud {
     char id[MAX_ID];
     float fuite;                 // % fuite du tronçon entrant
@@ -17,6 +27,18 @@ typedef struct AVL {
     struct AVL *fg;
     struct AVL *fd;
 } AVL;
+
+// ---------------------------------------------------------------------------------------------
+// Les fonctions suivantes vérifient les différentes lignes du fichier
+// Cette fonction vérifie : SOURCE -> USINE
+bool verif_S_U( Infos* i ){
+	return strcmp(i->id_usine, "-") == 0 && 
+	strcmp(i->id_amont, "-") != 0 && 
+	strcmp(i->id_aval, "-") != 0 && 
+	i->vol != -1.0 && 
+	i->fuites != -1.0;
+}
+
 
 int taille(AVL *h) {
     return h ? h->eq : 0;
@@ -145,52 +167,49 @@ void ajouteEnfants(Noeud *parent, Noeud *enfant) {
     parent->enfants = enfant;
 }
 
-Noeud *verifFichier(const char *fichier, const char *id_usine, AVL **index) {
+Noeud *verifFichier(const char *fichier, const char *id_usine,
+                    AVL **index, float *vol_init)
+{
     FILE *f = fopen(fichier, "r");
-    if (!f) {
-        fprintf(stderr, "Erreur ouverture fichier %s\n", fichier);
-        return NULL;
-    }
+    if (!f) return NULL;
 
     char c1[64], c2[64], c3[64], c4[64], c5[64];
     Noeud *racine = NULL;
 
     while (fscanf(f, "%63[^;];%63[^;];%63[^;];%63[^;];%63[^\n]\n",
-                  c1, c2, c3, c4, c5) == 5) {
+                  c1, c2, c3, c4, c5) == 5)
+    {
+        Infos i = {"", "", "", -1, -1};
+        strcpy(i.id_usine, c1);
+        strcpy(i.id_amont, c2);
+        strcpy(i.id_aval,  c3);
+        i.vol    = strcmp(c4, "-") ? atof(c4) : -1;
+        i.fuites = strcmp(c5, "-") ? atof(c5) : -1;
 
-        // Trouver la racine (l'usine demandée en tant que parent OU enfant)
-        if ((strcmp(c2, id_usine) == 0 || strcmp(c3, id_usine) == 0) && !racine) {
-            Noeud *tmp;
-            *index = insertavl(*index, id_usine, &tmp);
-            racine = tmp;
+        // SOURCE → USINE
+        if (verif_S_U(&i) && strcmp(c3, id_usine) == 0) *vol_init = i.vol;
+
+        Noeud *amont = NULL, *aval = NULL;
+
+        if (strcmp(c2, "-") != 0) *index = insertavl(*index, c2, &amont);
+        if (strcmp(c3, "-") != 0) *index = insertavl(*index, c3, &aval);
+
+        if (amont && aval) {
+            ajouteEnfants(amont, aval);
+            if (i.fuites >= 0)
+                aval->fuite = i.fuites;
         }
 
-        // Ne traiter que les lignes concernant l'usine spécifiée (en c2 ou c3)
-        if (strcmp(c2, id_usine) != 0 && strcmp(c3, id_usine) != 0)
-            continue;
-        
-        // Récupérer ou créer le nœud parent
-        Noeud *parent = rechercheavl(*index, c2);
-        if (!parent) {
-            *index = insertavl(*index, c2, &parent);
-        }
-
-        // Récupérer ou créer le nœud enfant
-        Noeud *enfant = rechercheavl(*index, c3);
-        if (!enfant) {
-            *index = insertavl(*index, c3, &enfant);
-        }
-
-        // Définir le pourcentage de fuite
-        if (strcmp(c5, "-") != 0)
-            enfant->fuite = atof(c5);
-
-        ajouteEnfants(parent, enfant);
+        if (!racine && strcmp(c3, id_usine) == 0)
+            racine = aval;
+        if (!racine && strcmp(c2, id_usine) == 0)
+            racine = amont;
     }
 
     fclose(f);
     return racine;
 }
+
 
 int nbrEnfant(Noeud *n) {
     int i = 0;
@@ -247,7 +266,8 @@ int main(int argc, char **argv) {
     }
 
     AVL *index = NULL;
-    Noeud *racine = verifFichier(argv[1], argv[2], &index);
+    float volume_initial = 0;
+    Noeud *racine = verifFichier(argv[1], argv[2], &index, &volume_initial);
 
     if (!racine) {
         printf("fuites = -1\n");
@@ -255,8 +275,6 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    // Volume de référence : 1 million de m3
-    float volume_initial = 1000000.0f;
     float pertes = calculerFuites(racine, volume_initial);
 
     printf("Pertes totales pour l'usine %s : %.2f m³/an\n", argv[2], pertes);
