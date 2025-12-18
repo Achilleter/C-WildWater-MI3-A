@@ -1,8 +1,44 @@
 #include "Principal.h"
 
-// ---------------------------------------------------------------------------------------------
+int max(int a, int b) { return a > b ? a : b; }
+int min(int a, int b) { return a < b ? a : b; }
+int max3(int a, int b, int c) { return max(max(a, b), c);}
+int min3(int a, int b, int c) { return min(min(a, b), c);}
+//---------------------------------------------------------------------------------------------
 // Les fonctions suivantes vérifient les différentes lignes du fichier
-// ---------------------------------------------------------------------------------------------
+// Cette fonction vérifie : SOURCE -> USINE
+bool verif_S_U( Infos* i ){
+	return strcmp(i->id_usine, "-") == 0 && 
+	strcmp(i->id_amont, "-") != 0 && 
+	strcmp(i->id_aval, "-") != 0 && 
+	i->vol != -1.0 && 
+	i->fuites != -1.0;
+}
+// Cette fonction vérifie : USINE
+bool verif_U( Infos* i ){
+	return strcmp(i->id_usine, "-")==0 && 
+	strcmp(i->id_amont, "-")!=0 && 
+	strcmp(i->id_aval, "-")==0 && 
+	i->vol!=-1.0 && 
+	i->fuites==-1.0;
+}
+// Cette fonction vérifie : USINE->STOCKAGE
+bool verif_U_S( Infos* i ){
+	return strcmp(i->id_usine, "-")==0 && 
+	strcmp(i->id_amont, "-")!=0 && 
+	strcmp(i->id_aval, "-")!=0 && 
+	i->vol==-1.0 && 
+	i->fuites!=-1.0;
+}
+// Cette fonction vérifie : STOCKAGE->JONCTION
+bool verif_S_J( Infos* i ){
+	return strcmp(i->id_usine, "-")!=0 && 
+	strcmp(i->id_amont, "-")!=0 && 
+	strcmp(i->id_aval, "-")!=0 && 
+	i->vol==-1.0 && 
+	i->fuites!=-1.0;
+} 
+//---------------------------------------------------------------------------------------------
 AVL* creerAVL(const char* id){
     AVL* n = malloc(sizeof(AVL));
     if(!n) exit(EXIT_FAILURE);

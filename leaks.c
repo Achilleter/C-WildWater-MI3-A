@@ -1,208 +1,235 @@
-#include "principal.h"
+#include "Principal.h"
 
-AVLeaks* rotationGaucheavleaks(AVLeaks* avl){
-    AVLeaks* p = avl->fd;
-    int eq_a = avl->eq;
-    int eq_p = p->eq;
-    avl->fd = p->fg;
-    p->fg = avl;
-    avl->eq = eq_a - max(eq_p,0) - 1;
-    p->eq = min3(eq_a-2, eq_a+eq_p-2, eq_p-1);
-    return p;
+int taille(AVLeak *h) {
+    return h ? h->eq : 0;
 }
 
-AVLeaks* rotationDroiteavleaks(AVLeaks* avl){
-    AVLeaks* p = avl->fg;
-    int eq_a = avl->eq;
-    int eq_p = p->eq;
-    avl->fg = p->fd;
-    p->fd = avl;
-    avl->eq = eq_a - min(eq_p,0) + 1;
-    p->eq = max3(eq_a+2, eq_a+eq_p+2, eq_p+1);
-    return p;
+AVLeak *rotation_droite(AVLeak *y) {
+    AVLeak *x = y->fg;
+    AVLeak *T2 = x->fd;
+
+    x->fd = y;
+    y->fg = T2;
+
+    y->eq = max(taille(y->fg), taille(y->fd)) + 1;
+    x->eq = max(taille(x->fg), taille(x->fd)) + 1;
+
+    return x;
 }
 
-AVLeaks* doubleRotationGaucheavleaks(AVLeaks* avl){
-    avl->fd = rotationDroiteavleaks(avl->fd);
-    return rotationGaucheavleaks(avl);
+AVLeak *rotation_gauche(AVLeak *x) {
+    AVLeak *y = x->fd;
+    AVLeak *T2 = y->fg;
+
+    y->fg = x;
+    x->fd = T2;
+
+    x->eq = max(taille(x->fg), taille(x->fd)) + 1;
+    y->eq = max(taille(y->fg), taille(y->fd)) + 1;
+
+    return y;
 }
 
-AVLeaks* doubleRotationDroiteavleaks(AVLeaks* avl){
-    avl->fg = rotationGaucheavleaks(avl->fg);
-    return rotationDroiteavleaks(avl);
+int equilibre(AVLeak *h) {
+    return h ? taille(h->fg) - taille(h->fd) : 0;
 }
 
-AVLeaks* equilibrerAVLeaks(AVLeaks* avl){
-    if(avl->eq >= 2){
-        if(avl->fd->eq >= 0)
-            return rotationGaucheavleaks(avl);
-        else
-            return doubleRotationGaucheavleaks(avl);
+Noeud *creernoeud(const char *id) {
+    Noeud *n = malloc(sizeof(Noeud));
+    if (!n) {
+        printf("Erreur allocation mémoire \n");
+        exit(EXIT_FAILURE);
     }
-    else if(avl->eq <= -2){
-        if(avl->fg->eq <= 0)
-            return rotationDroiteavleaks(avl);
-        else
-            return doubleRotationDroiteavleaks(avl);
+    strncpy(n->id, id, MAX_ID - 1);
+    n->id[MAX_ID - 1] = '\0';
+    n->fuite = 0;
+    n->enfants = NULL;
+    n->next = NULL;
+    return n;
+}
+
+AVLeak *rotation(AVLeak *avl, const char *id){
+    avl->eq = 1 + max(taille(avl->fg), taille(avl->fd));
+    int h = equilibre(avl);
+    // Rotation droite
+    if (h > 1 && strcmp(id, avl->fg->id) < 0)
+        return rotation_droite(avl);
+    
+    // Rotation gauche
+    if (h < -1 && strcmp(id, avl->fd->id) > 0)
+        return rotation_gauche(avl);
+    
+    // Double rotation gauche-droite
+    if (h > 1 && strcmp(id, avl->fg->id) > 0) {
+        avl->fg = rotation_gauche(avl->fg);
+        return rotation_droite(avl);
+    }
+    
+    // Double rotation droite-gauche
+    if (h < -1 && strcmp(id, avl->fd->id) < 0) {
+        avl->fd = rotation_droite(avl->fd);
+        return rotation_gauche(avl);
     }
     return avl;
 }
 
-float leaks(Noeud* a) {
-    if (a == NULL)
-        return 0;
-    float total = 0;
-    while (a != NULL) {
-        // fuite du nœud courant
-		if(a->infos.fuites > 0 && a->infos.vol > 0){
-        	total += a->infos.vol * (a->infos.fuites / 100.0f);
-		}
-        // fuite des enfants
-        total += leaks(a->premier_enfant);
-        // passer au frère suivant
-        a = a->next;
+AVLeak *insertavl(AVLeak *avl, const char *id, Noeud **noeud) {
+    if (!avl) {
+        AVLeak *avltmp = malloc(sizeof(AVLeak));
+        if (!avltmp) {
+            printf("Erreur allocation mémoire \n");
+            exit(EXIT_FAILURE);
+        }
+        avltmp->noeud = creernoeud(id);
+        strncpy(avltmp->id, id, MAX_ID - 1);
+        avltmp->id[MAX_ID - 1] = '\0';
+        avltmp->fg = NULL;
+        avltmp->fd = NULL;
+        avltmp->eq = 1;
+        *noeud = avltmp->noeud;
+        return avltmp;
     }
+
+    if (strcmp(id, avl->id) < 0)
+        avl->fg = insertavl(avl->fg, id, noeud);
+    else if (strcmp(id, avl->id) > 0)
+        avl->fd = insertavl(avl->fd, id, noeud);
+    else {
+        *noeud = avl->noeud;
+        return avl;
+    }
+
+    avl=rotation(avl,id);
+
+    return avl;
+}
+
+Noeud *rechercheavl(AVLeak *avl, const char *id) {
+    if (!avl) {
+        return NULL;
+    }
+    int cmp = strcmp(id, avl->id);
+    if (cmp == 0) {
+        return avl->noeud;
+    }
+    if (cmp < 0) {
+        return rechercheavl(avl->fg, id);
+    }
+    return rechercheavl(avl->fd, id);
+}
+
+void ajouteEnfants(Noeud *parent, Noeud *enfant) {
+    enfant->next = parent->enfants;
+    parent->enfants = enfant;
+}
+
+Noeud *verifFichier(const char *fichier, const char *id_usine, AVLeak **index, float *vol_init)
+{
+    FILE *f = fopen(fichier, "r");
+    if (!f) return NULL;
+
+    char c1[64], c2[64], c3[64], c4[64], c5[64];
+    Noeud *racine = NULL;
+
+    while (fscanf(f, "%63[^;];%63[^;];%63[^;];%63[^;];%63[^\n]\n",
+                  c1, c2, c3, c4, c5) == 5)
+    {
+        Infos i = {"", "", "", -1, -1};
+        strcpy(i.id_usine, c1);
+        strcpy(i.id_amont, c2);
+        strcpy(i.id_aval,  c3);
+        i.vol    = strcmp(c4, "-") ? atof(c4) : -1;
+        i.fuites = strcmp(c5, "-") ? atof(c5) : -1;
+
+        // SOURCE → USINE
+        if (verif_S_U(&i) && strcmp(c3, id_usine) == 0) *vol_init = i.vol;
+
+        Noeud *amont = NULL, *aval = NULL;
+
+        if (strcmp(c2, "-") != 0) *index = insertavl(*index, c2, &amont);
+        if (strcmp(c3, "-") != 0) *index = insertavl(*index, c3, &aval);
+
+        if (amont && aval) {
+            ajouteEnfants(amont, aval);
+            if (i.fuites >= 0)
+                aval->fuite = i.fuites;
+        }
+
+        if (!racine && strcmp(c3, id_usine) == 0)
+            racine = aval;
+        if (!racine && strcmp(c2, id_usine) == 0)
+            racine = amont;
+    }
+
+    fclose(f);
+    return racine;
+}
+
+
+int nbrEnfant(Noeud *n) {
+    int i = 0;
+    Noeud *e = n->enfants;
+    while (e != NULL) {
+        i++;
+        e = e->next;
+    }
+    return i;
+}
+
+float calculerFuites(Noeud *n, float volume) {
+    if (!n || volume <= 0) return 0;
+
+    // Calculer le volume perdu par fuite
+    float perdu = volume * n->fuite / 100.0f;
+    float restant = volume - perdu;
+
+    int nb = nbrEnfant(n);
+    float total = perdu;
+
+    // Si pas d'enfants, retourner juste les fuites de ce nœud
+    if (nb == 0) return total;
+
+    // Distribuer équitablement le volume restant aux enfants
+    float part = restant / nb;
+    for (Noeud *e = n->enfants; e; e = e->next)
+        total += calculerFuites(e, part);
+
     return total;
 }
 
-Noeud* rechercheAvleaks(AVLeaks* avl, char* id){ //prends en paramètre l'id de l'amont et retourne celui-ci
-    if (avl == NULL) {
-		return NULL;
-	}
-
-	int cmp = strcmp(id, avl->id_usine);
-	if (cmp == 0) {
-		// Trouvé le nœud, incrémenter les fuites
-		return avl->val;
-	} else if (cmp < 0) {
-		// Aller à gauche
-		return rechercheAvleaks(avl->fg, id);
-	} else {
-		// Aller à droite
-		return rechercheAvleaks(avl->fd, id);
-	}
-}
-
-Noeud* incrementleakabr(Noeud* a,AVLeaks* avl,AVLeaks* avltmp, char* id) {
-	Noeud* atmp;
-	atmp = rechercheAvleaks(avl, id);
-	if(a == NULL) {
-		a->premier_enfant = atmp;
-		a->dernier_enfant = atmp;
-	}
-	else{
-		a->dernier_enfant->next = atmp;
-		a->dernier_enfant = atmp;
-	}
-	return a;
-}
-
-AVLeaks* creerAVL() {
-	AVLeaks* nouveau = malloc( sizeof( AVLeaks ) );
-	if( nouveau == NULL ) exit( EXIT_FAILURE );
-	nouveau->id_usine[0] = '\0';
-	nouveau->eq = 0 ;
-	nouveau->fg = NULL ;
-	nouveau->fd = NULL ;
-	nouveau->val = malloc(sizeof(Noeud));
-	return nouveau;
-}
-
-Noeud* creerarbreleaks() {
-	Noeud* nouveau = malloc( sizeof( Noeud ) );
-	if( nouveau == NULL ) exit( EXIT_FAILURE );
-	nouveau->infos.id_usine[0] = '\0';
-	nouveau->infos.id_amont[0] = '\0';
-	nouveau->infos.id_aval[0] = '\0';
-	nouveau->infos.vol= 0;
-	nouveau->infos.fuites = 0;
-	nouveau->premier_enfant = NULL;
-	nouveau->dernier_enfant = NULL;
-	nouveau->next = NULL;
-	return nouveau;
-}
-
-AVLeaks* insertionAVLeaks(AVLeaks* avl, AVLeaks* avltmp, int* h) {
-	if (avl == NULL) {
-		*h = 1;
-		return avltmp;
-	}
-	int cmp = strcmp(avltmp->id_usine, avl->id_usine);
-    if (cmp == 0) {
-		// cette usine existe déjà, retourner la valeur existante
-		return avl;
-		*h = 0;
-	} else if (cmp < 0) {
-		// Aller à gauche
-		avl->fg = insertionAVLeaks(avl->fg, avltmp,h);
-		*h=-*h;
-	} else {
-		// Aller à droite
-		avl->fd = insertionAVLeaks(avl->fd, avltmp,h);
-	}
-
-    // Mise à jour du facteur d'équilibre et rééquilibrage si nécessaire
-    if (*h != 0)
-    {
-        avl->eq += *h;
-        avl = equilibrerAVLeaks(avl);
-        *h = (avl->eq == 0) ? 0 : 1; // Mise à jour de la hauteur
+void freearbre(Noeud *n) {
+    if (!n) return;
+    for (Noeud *e = n->enfants; e; ) {
+        Noeud *tmp = e;
+        e = e->next;
+        freearbre(tmp);
     }
-    return avl;
+    free(n);
 }
 
-Noeud* chercherenfants(AVLeaks** avl, Noeud* a, char id[], FILE* f){
-	char c1[64] ,c2[64] ,c3[64] ,c4[64] ,c5[64];
-	rewind(f);
-
-	while( 1 ){
-		// Initialisation des chaînes de caractères à "-" avant le fscanf
-		strcpy(c1,"-");
-		strcpy(c2,"-");
-		strcpy(c3,"-");
-		strcpy(c4,"-");
-		strcpy(c5,"-");
-
-		int n = fscanf(f , "%63[^;];%63[^;];%63[^;];%63[^;];%63[^\n]", c1,c2,c3,c4,c5);
-
-		if (n == EOF){
-			break;
-		}
-
-        int ch;
-		while ((ch = fgetc(f)) != '\n' && ch != EOF);
-
-        if (strcmp(id, c2) == 0) {
-			AVLeaks* avltmp = creerAVL();
-            strncpy( avltmp->val->infos.id_usine , c1, 63 );
-		    avltmp->val->infos.id_usine[63] = '\0';
-			strcpy(avltmp->id_usine, avltmp->val->infos.id_usine);
-
-		    strncpy( avltmp->val->infos.id_amont, c2, 63 );
-		    avltmp->val->infos.id_amont[63] = '\0';
-
-		    strncpy( avltmp->val->infos.id_aval , c3, 63 );
-		    avltmp->val->infos.id_aval[63] = '\0';
-		
-		    avltmp->val->infos.vol = (strcmp( c4 , "-" )==0) ? -1.0 : atof(c4) ;
-		    avltmp->val->infos.fuites = (strcmp( c5 , "-" )==0) ? -1.0 : atof(c5) ;
-		    int h = 0;
-            *avl = insertionAVLeaks(avltmp,*avl,&h);
-		a = incrementleakabr(a,*avl,avltmp,id);
-		a = chercherenfants(avl,a,avltmp->id_usine,f);
-        }
-    }
-	return a;
+void freeavl(AVLeak *avl) {
+    if (!avl) return;
+    freeavl(avl->fg);
+    freeavl(avl->fd);
+    free(avl);
 }
 
-Noeud* incrementleakavl(AVLeaks* avl, char id[64]) {
-    FILE* f = fopen( "c-wildwater_v0.dat" , "r" );
-	if( f == NULL ) {
-		printf("Erreur d'ouverture du fichier %s\n", "c-wildwater_v0.dat");	
-		exit(1);
+
+void faire_leak(const char* nomFICHIER, const char* nomUSINE){
+	AVLeak *index = NULL;
+	float volume_initial = 0;
+	Noeud *racine = verifFichier(nomFICHIER, nomUSINE, &index, &volume_initial);
+
+	if (!racine) {
+		printf("fuites = -1\n");
+		freeavl(index);
+		return exit(EXIT_FAILURE);
 	}
-	Noeud* a = creerarbreleaks();
-	a = chercherenfants(&avl, a, id, f);
-    fclose(f);
-	return a;
+
+	float pertes = calculerFuites(racine, volume_initial);
+
+	printf("Pertes totales pour l'usine %s : %.2f m³/an\n", nomUSINE, pertes);
+
+	freearbre(racine);
+	freeavl(index);
 }
