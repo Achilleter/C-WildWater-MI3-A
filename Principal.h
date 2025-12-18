@@ -2,41 +2,24 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <time.h>
 
-//Structures temporaires
-/*
+#define MAX_ID 64
+
 typedef struct{
-	char id_usine[64] ; //Colonne 1
-	char id_amont[64] ; //Colonne 2
-	char id_aval[64] ; //Colonne 3
-	float vol ; //Colonne 4 si prblm mettre en double
-	float fuites ; //Colonne 5
-} Infos;
-
-typedef struct chainon{
-    Infos infos;
-    struct chainon* premier_enfant;
-    struct chainon* dernier_enfant;
-    struct chainon* next;
-} Noeud;
-
-typedef struct avl_struct
-{
-    char id_usine[64]; // id de l'usine pour comparaison
-    Noeud* val;             // La valeur du nœud
-    int eq;                // Facteur d'équilibre (balance factor)
-    struct avl_struct *fg; // Pointeur vers le fils gauche
-    struct avl_struct *fd; // Pointeur vers le fils droit
-} AVLeaks;
-*/
-//-------------------------------------------
-typedef struct{
-	char id_usine[64] ; //Colonne 1
-	char id_amont[64] ; //Colonne 2
-	char id_aval[64] ; //Colonne 3
+	char id_usine[MAX_ID] ; //Colonne 1
+	char id_amont[MAX_ID] ; //Colonne 2
+	char id_aval[MAX_ID] ; //Colonne 3
 	float vol ; //Colonne 4 
 	float fuites ; //Colonne 5
 } Infos;
+
+typedef struct Noeud {
+    char id[MAX_ID];
+    float fuite;                 // % fuite du tronçon entrant
+    struct Noeud *enfants;        // premier enfant
+    struct Noeud *next;           // frère suivant
+} Noeud;
 
 typedef struct s_pile{
     Infos infos;
@@ -52,18 +35,95 @@ typedef struct usine{
 	int hauteur;
 }Usine;
 
+typedef struct pAVLeak {
+    char id[MAX_ID];
+    Noeud *noeud;
+    int eq;
+    struct pAVLeak *fg;
+    struct pAVLeak *fd;
+} AVLeak;
+
 typedef struct u_AVL {
     Usine u;
     struct u_AVL* fg;
     struct u_AVL* fd;
 } AVL;
 
+// ------------------------------------------------------------------------------------
+//	FONCTIONS VERIFS
+// ------------------------------------------------------------------------------------
+// Cette fonction vérifie : SOURCE -> USINE
+bool verif_S_U( Infos* i ){
+	return strcmp(i->id_usine, "-") == 0 && 
+	strcmp(i->id_amont, "-") != 0 && 
+	strcmp(i->id_aval, "-") != 0 && 
+	i->vol != -1.0 && 
+	i->fuites != -1.0;
+}
+// Cette fonction vérifie : USINE
+bool verif_U( Infos* i ){
+	return strcmp(i->id_usine, "-")==0 && 
+	strcmp(i->id_amont, "-")!=0 && 
+	strcmp(i->id_aval, "-")==0 && 
+	i->vol!=-1.0 && 
+	i->fuites==-1.0;
+}
+// Cette fonction vérifie : USINE->STOCKAGE
+bool verif_U_S( Infos* i ){
+	return strcmp(i->id_usine, "-")==0 && 
+	strcmp(i->id_amont, "-")!=0 && 
+	strcmp(i->id_aval, "-")!=0 && 
+	i->vol==-1.0 && 
+	i->fuites!=-1.0;
+}
+// Cette fonction vérifie : STOCKAGE->JONCTION
+bool verif_S_J( Infos* i ){
+	return strcmp(i->id_usine, "-")!=0 && 
+	strcmp(i->id_amont, "-")!=0 && 
+	strcmp(i->id_aval, "-")!=0 && 
+	i->vol==-1.0 && 
+	i->fuites!=-1.0;
+}
+// ------------------------------------------------------------------------------------
 int max(int a, int b) { return a > b ? a : b; }
 int min(int a, int b) { return a < b ? a : b; }
-
-int max3(int a, int b, int c) {
-    return max(max(a, b), c);
-}
-int min3(int a, int b, int c) {
-    return min(min(a, b), c);
-}
+int max3(int a, int b, int c) { return max(max(a, b), c);}
+int min3(int a, int b, int c) { return min(min(a, b), c);}
+// ------------------------------------------------------------------------------------
+//	DEF FONCTION MAIN.C
+// ------------------------------------------------------------------------------------
+AVL* creerAVL(const char* id);
+AVL* rotationGauche(AVL* a);
+AVL* rotationDroite(AVL* a);
+AVL* doubleRotationGauche(AVL* a);
+AVL* doubleRotationDroite(AVL* a);
+AVL* equilibrerAVL(AVL* a);
+AVL* insertionAVL(AVL* a, const char* id, int* h);
+AVL* rechercherAVL(AVL* a, const char* id);
+void afficherAVL(AVL* a);
+void libererAVL(AVL* a);
+void histo_maxMAX(AVL* Avl_U, Usine* tab_max);
+void histo_maxMIN(AVL* Avl_U, Usine* tab_min);
+void histo_srcMAX(AVL* Avl_U, Usine* tab_max);
+void histo_srcMIN(AVL* Avl_U, Usine* tab_min);
+void histo_reelMAX(AVL* Avl_U, Usine* tab_max);
+void histo_reelMIN(AVL* Avl_U, Usine* tab_min);
+void incrementationFICHIER( const char* nom , const char* arg1 , const char* arg2);
+// ------------------------------------------------------------------------------------
+//	DEF FONCTION LEAKS.C
+// ------------------------------------------------------------------------------------
+int taille(AVLeak *h);
+AVLeak *rotation_droite(AVLeak *y);
+AVLeak *rotation_gauche(AVLeak *x);
+int equilibre(AVLeak *h);
+Noeud *creernoeud(const char *id);
+AVLeak *rotation(AVLeak *avl, const char *id);
+AVLeak *insertavl(AVLeak *avl, const char *id, Noeud **noeud);
+Noeud *rechercheavl(AVLeak *avl, const char *id);
+void ajouteEnfants(Noeud *parent, Noeud *enfant);
+Noeud *verifFichier(const char *fichier, const char *id_usine, AVLeak **index, float *vol_init);
+int nbrEnfant(Noeud *n);
+float calculerFuites(Noeud *n, float volume);
+void freearbre(Noeud *n);
+void freeavl(AVLeak *avl);
+void faire_leak(const char* nomFICHIER, const char* nomUSINE);

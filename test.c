@@ -1,46 +1,7 @@
 #include "Principal.h"
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <time.h>
-
-// Forward declaration for tree cleanup
-void libererAVL(AVL* a);
 
 // ---------------------------------------------------------------------------------------------
 // Les fonctions suivantes vérifient les différentes lignes du fichier
-// Cette fonction vérifie : SOURCE -> USINE
-bool verif_S_U( Infos* i ){
-	return strcmp(i->id_usine, "-") == 0 && 
-	strcmp(i->id_amont, "-") != 0 && 
-	strcmp(i->id_aval, "-") != 0 && 
-	i->vol != -1.0 && 
-	i->fuites != -1.0;
-}
-// Cette fonction vérifie : USINE
-bool verif_U( Infos* i ){
-	return strcmp(i->id_usine, "-")==0 && 
-	strcmp(i->id_amont, "-")!=0 && 
-	strcmp(i->id_aval, "-")==0 && 
-	i->vol!=-1.0 && 
-	i->fuites==-1.0;
-}
-// Cette fonction vérifie : USINE->STOCKAGE
-bool verif_U_S( Infos* i ){
-	return strcmp(i->id_usine, "-")==0 && 
-	strcmp(i->id_amont, "-")!=0 && 
-	strcmp(i->id_aval, "-")!=0 && 
-	i->vol==-1.0 && 
-	i->fuites!=-1.0;
-}
-// Cette fonction vérifie : STOCKAGE->JONCTION
-bool verif_S_J( Infos* i ){
-	return strcmp(i->id_usine, "-")!=0 && 
-	strcmp(i->id_amont, "-")!=0 && 
-	strcmp(i->id_aval, "-")!=0 && 
-	i->vol==-1.0 && 
-	i->fuites!=-1.0;
-}
 // ---------------------------------------------------------------------------------------------
 AVL* creerAVL(const char* id){
     AVL* n = malloc(sizeof(AVL));
@@ -140,7 +101,7 @@ AVL* rechercherAVL(AVL* a, const char* id){
     return rechercherAVL(a->fd, id);
 }
 
-AVL* get_or_create(AVL** racine, const char* id){
+AVL* avoir_ou_création(AVL** racine, const char* id){
     AVL* u = rechercherAVL(*racine, id);
     if(!u){
         int h = 0;
@@ -339,11 +300,11 @@ void incrementationFICHIER( const char* nom , const char* arg1 , const char* arg
 		i.fuites = (strcmp( c5 , "-" )==0) ? -1.0 : atof(c5) ;
 		
 		if(verif_U(&i)){
-		    AVL * v = get_or_create(&u, i.id_amont);
+		    AVL * v = avoir_ou_création(&u, i.id_amont);
 		    v->u.vol_max += i.vol;
 		}
 		else if(verif_S_U(&i)){
-		    AVL * v  = get_or_create(&u, i.id_aval);
+		    AVL * v  = avoir_ou_création(&u, i.id_aval);
 		    v->u.vol_sources += i.vol;
 		    v->u.vol_reel += i.vol * (1 - i.fuites/100);
 		}	
@@ -463,24 +424,17 @@ int main(int argc, char** argv) {
 	const char *details = argv[3];
 	
 	
-	if( strcmp(fonction, "histo") != 0 && strcmp(fonction, "leaks") != 0 ){
-		printf("Erreur dans le 2ème argument\n");
-		return 0;
+	if( strcmp(fonction, "leaks") == 0 ){
+		faire_leak(name,details);
 	}
-	
 	else if ( strcmp(fonction, "histo") == 0 &&
-        (strcmp(details, "max") != 0 &&
-         strcmp(details, "src") != 0 &&
-         strcmp(details, "real") != 0) ){
-		printf("Erreur dans le 3ème argument\n");
-		return 0;
+        (strcmp(details, "max") == 0 ||
+         strcmp(details, "src") == 0 ||
+         strcmp(details, "real") == 0) ){
+		incrementationFICHIER(name, fonction , details );
 	}
-	
-	
-	incrementationFICHIER(name, fonction , details );
 	
 	clock_t end = clock();
-
 	double temps = (double)(end - start) / CLOCKS_PER_SEC;
 	printf("Temps CPU : %.6f secondes\n", temps);
 	

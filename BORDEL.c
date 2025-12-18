@@ -1,56 +1,12 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
+#include "Principal.h"
 
-#define MAX_ID 64
-
-typedef struct{
-	char id_usine[64] ; //Colonne 1
-	char id_amont[64] ; //Colonne 2
-	char id_aval[64] ; //Colonne 3
-	float vol ; //Colonne 4 
-	float fuites ; //Colonne 5
-} Infos;
-
-typedef struct Noeud {
-    char id[MAX_ID];
-    float fuite;                 // % fuite du tronçon entrant
-    struct Noeud *enfants;        // premier enfant
-    struct Noeud *next;           // frère suivant
-} Noeud;
-
-typedef struct AVL {
-    char id[MAX_ID];
-    Noeud *noeud;
-    int eq;
-    struct AVL *fg;
-    struct AVL *fd;
-} AVL;
-
-// ---------------------------------------------------------------------------------------------
-// Les fonctions suivantes vérifient les différentes lignes du fichier
-// Cette fonction vérifie : SOURCE -> USINE
-bool verif_S_U( Infos* i ){
-	return strcmp(i->id_usine, "-") == 0 && 
-	strcmp(i->id_amont, "-") != 0 && 
-	strcmp(i->id_aval, "-") != 0 && 
-	i->vol != -1.0 && 
-	i->fuites != -1.0;
-}
-
-
-int taille(AVL *h) {
+int taille(AVLeak *h) {
     return h ? h->eq : 0;
 }
 
-int max(int a, int b) {
-    return (a > b) ? a : b;
-}
-
-AVL *rotation_droite(AVL *y) {
-    AVL *x = y->fg;
-    AVL *T2 = x->fd;
+AVLeak *rotation_droite(AVLeak *y) {
+    AVLeak *x = y->fg;
+    AVLeak *T2 = x->fd;
 
     x->fd = y;
     y->fg = T2;
@@ -61,9 +17,9 @@ AVL *rotation_droite(AVL *y) {
     return x;
 }
 
-AVL *rotation_gauche(AVL *x) {
-    AVL *y = x->fd;
-    AVL *T2 = y->fg;
+AVLeak *rotation_gauche(AVLeak *x) {
+    AVLeak *y = x->fd;
+    AVLeak *T2 = y->fg;
 
     y->fg = x;
     x->fd = T2;
@@ -74,7 +30,7 @@ AVL *rotation_gauche(AVL *x) {
     return y;
 }
 
-int equilibre(AVL *h) {
+int equilibre(AVLeak *h) {
     return h ? taille(h->fg) - taille(h->fd) : 0;
 }
 
@@ -92,7 +48,7 @@ Noeud *creernoeud(const char *id) {
     return n;
 }
 
-AVL *rotation(AVL *avl, const char *id){
+AVLeak *rotation(AVLeak *avl, const char *id){
     avl->eq = 1 + max(taille(avl->fg), taille(avl->fd));
     int h = equilibre(avl);
     // Rotation droite
@@ -117,9 +73,9 @@ AVL *rotation(AVL *avl, const char *id){
     return avl;
 }
 
-AVL *insertavl(AVL *avl, const char *id, Noeud **noeud) {
+AVLeak *insertavl(AVLeak *avl, const char *id, Noeud **noeud) {
     if (!avl) {
-        AVL *avltmp = malloc(sizeof(AVL));
+        AVLeak *avltmp = malloc(sizeof(AVLeak));
         if (!avltmp) {
             printf("Erreur allocation mémoire \n");
             exit(EXIT_FAILURE);
@@ -148,7 +104,7 @@ AVL *insertavl(AVL *avl, const char *id, Noeud **noeud) {
     return avl;
 }
 
-Noeud *rechercheavl(AVL *avl, const char *id) {
+Noeud *rechercheavl(AVLeak *avl, const char *id) {
     if (!avl) {
         return NULL;
     }
@@ -167,8 +123,7 @@ void ajouteEnfants(Noeud *parent, Noeud *enfant) {
     parent->enfants = enfant;
 }
 
-Noeud *verifFichier(const char *fichier, const char *id_usine,
-                    AVL **index, float *vol_init)
+Noeud *verifFichier(const char *fichier, const char *id_usine, AVLeak **index, float *vol_init)
 {
     FILE *f = fopen(fichier, "r");
     if (!f) return NULL;
@@ -252,34 +207,29 @@ void freearbre(Noeud *n) {
     free(n);
 }
 
-void freeavl(AVL *avl) {
+void freeavl(AVLeak *avl) {
     if (!avl) return;
     freeavl(avl->fg);
     freeavl(avl->fd);
     free(avl);
 }
 
-int main(int argc, char **argv) {
-    if (argc != 3) {
-        fprintf(stderr, "Usage: %s fichier.csv \"ID_USINE\"\n", argv[0]);
-        return EXIT_FAILURE;
-    }
 
-    AVL *index = NULL;
-    float volume_initial = 0;
-    Noeud *racine = verifFichier(argv[1], argv[2], &index, &volume_initial);
+void faire_leak(const char* nomFICHIER, const char* nomUSINE){
+	AVLeak *index = NULL;
+	float volume_initial = 0;
+	Noeud *racine = verifFichier(nomFICHIER, nomUSINE, &index, &volume_initial);
 
-    if (!racine) {
-        printf("fuites = -1\n");
-        freeavl(index);
-        return EXIT_FAILURE;
-    }
+	if (!racine) {
+		printf("fuites = -1\n");
+		freeavl(index);
+		return EXIT_FAILURE;
+	}
 
-    float pertes = calculerFuites(racine, volume_initial);
+	float pertes = calculerFuites(racine, volume_initial);
 
-    printf("Pertes totales pour l'usine %s : %.2f m³/an\n", argv[2], pertes);
+	printf("Pertes totales pour l'usine %s : %.2f m³/an\n", argv[2], pertes);
 
-    freearbre(racine);
-    freeavl(index);
-    return 0;
+	freearbre(racine);
+	freeavl(index);
 }
