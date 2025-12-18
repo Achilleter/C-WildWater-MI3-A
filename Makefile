@@ -5,16 +5,16 @@ PROG = C-WILDWATER-MI3-A
 SRC = main.c leaks.c
 
 # Options de compilation
-CFLAGS = -Wall -Wextra -g
-LDFLAGS = 
+CFLAGS = -Wall -Wextra -g 
 
 # Règle par défaut : compile puis exécute
 all: $(PROG)
-	./$(PROG)
 
+run: $(PROG)
+	./$(PROG) $(ARGS)
 # Compilation de l'exécutable
 $(PROG): $(SRC) Principal.h
-	gcc $(CFLAGS) -o $(PROG) $(SRC) $(LDFLAGS)
+	gcc $(CFLAGS) -o $(PROG) $(SRC)
 
 # Nettoyage des fichiers générés
 clean:
