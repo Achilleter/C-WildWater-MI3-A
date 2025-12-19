@@ -25,16 +25,12 @@ if [[ "$2" == "histo" ]]; then
 	fi
 	
 	if [[ -f histo.dat ]]; then
-		gnuplot gnuplot.gnu
+		python3 HISTOGRAM.py
 		echo "Graphique généré : histo.png"
 	else
-		echo "Fichier histo.gnu introuvable"
+		echo "Fichier histo.dat introuvable"
+		exit 1
 	fi
-	
-	
-	
-	
-	
 	
 elif [[ "$2" == "leaks" ]]; then 
 	if [[ -z "$3" ]]; then
