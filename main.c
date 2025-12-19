@@ -294,6 +294,42 @@ void histo_reelMIN(AVL* Avl_U, Usine* tab_min) {
     histo_reelMIN(Avl_U->fd, tab_min);
 }
 // ---------------------------------------------------------------------------------------------
+void ecrire_fichier_histo( Usine *tab_max, int nmax,Usine *tab_min, int nmin,int type){
+    FILE *f = fopen("histo.dat", "w");
+    
+    for (int i = 0; i < nmax; i++) {
+        if (tab_max[i].id != NULL) {
+            double v;
+            if (type == 0) {
+                v = tab_max[i].vol_max;
+            }
+            else if (type == 1) {
+                v = tab_max[i].vol_sources;
+            }
+            else {
+                v = tab_max[i].vol_reel;
+            }
+            fprintf(f, "%s %.2f max\n", tab_max[i].id, v);
+        }
+    }
+    for (int i = 0; i < nmin; i++) {
+        if (tab_min[i].id != NULL) {
+            double v;
+            if (type == 0) {
+                v = tab_min[i].vol_max;
+            }
+            else if (type == 1) {
+                v = tab_min[i].vol_sources;
+            }
+            else {
+                v = tab_min[i].vol_reel;
+            }
+            fprintf(f, "%s %.2f min\n", tab_min[i].id, v);
+        }
+    }
+    fclose(f);
+}
+// ---------------------------------------------------------------------------------------------
 void incrementationFICHIER( const char* nom , const char* arg1 , const char* arg2){
 
 	FILE* f = fopen( nom , "r" );
@@ -364,19 +400,7 @@ void incrementationFICHIER( const char* nom , const char* arg1 , const char* arg
 
 				histo_maxMIN(u, tab_min);
 				
-				
-				printf("HISTO MAX \nMax \n");
-				for( int i = 0 ; i<10 ; i++ ){
-					if ( tab_max[i].id !=NULL ){
-						printf(" %d, %s , %.2f \n", i+1, tab_max[i].id, tab_max[i].vol_max);
-					}
-				}
-				printf("\n Min: \n");
-				for( int i = 0 ; i<50 ; i++ ){
-					if ( tab_min[i].id !=NULL ){
-						printf(" %d, %s , %.2f \n", i+1, tab_min[i].id, tab_min[i].vol_max);
-					}
-				}
+				ecrire_fichier_histo(tab_max,10,tab_min,50,0);
 			}
 			else if (strcmp(arg2, "src") == 0) {
 				Usine tab_max[10];
@@ -397,18 +421,7 @@ void incrementationFICHIER( const char* nom , const char* arg1 , const char* arg
 				histo_srcMIN(u, tab_min);
 				
 				
-				printf("HISTO SRC \nMax \n");
-				for( int i = 0 ; i<10 ; i++ ){
-					if ( tab_max[i].id !=NULL ){
-						printf(" %d, %s , %.2f \n", i+1, tab_max[i].id, tab_max[i].vol_sources);
-					}
-				}
-				printf("\n Min: \n");
-				for( int i = 0 ; i<50 ; i++ ){
-					if ( tab_min[i].id !=NULL ){
-						printf(" %d, %s , %.2f \n", i+1, tab_min[i].id, tab_min[i].vol_sources);
-					}
-				}
+				ecrire_fichier_histo(tab_max,10,tab_min,50,1);
 			}
 			else if (strcmp(arg2, "real") == 0) {
 				Usine tab_max[10];
@@ -429,18 +442,7 @@ void incrementationFICHIER( const char* nom , const char* arg1 , const char* arg
 				histo_reelMIN(u, tab_min);
 				
 				
-				printf("HISTO REAL \nMax \n");
-				for( int i = 0 ; i<10 ; i++ ){
-					if ( tab_max[i].id !=NULL ){
-						printf(" %d, %s , %.2f \n", i+1, tab_max[i].id, tab_max[i].vol_reel);
-					}
-				}
-				printf("\n Min: \n");
-				for( int i = 0 ; i<50 ; i++ ){
-					if ( tab_min[i].id != NULL ){
-						printf(" %d, %s , %.2f \n", i+1, tab_min[i].id, tab_min[i].vol_reel);
-					}
-				}
+				ecrire_fichier_histo(tab_max,10,tab_min,50,2);
 			}
 		}
 	fclose(f);

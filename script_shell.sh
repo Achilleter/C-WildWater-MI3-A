@@ -23,6 +23,19 @@ if [[ "$2" == "histo" ]]; then
 		echo "L'argument après 'histo' n'a pas été compris"
 		exit 1
 	fi
+	
+	if [[ -f histo.dat ]]; then
+		gnuplot gnuplot.gnu
+		echo "Graphique généré : histo.png"
+	else
+		echo "Fichier histo.gnu introuvable"
+	fi
+	
+	
+	
+	
+	
+	
 elif [[ "$2" == "leaks" ]]; then 
 	if [[ -z "$3" ]]; then
 		echo "Usage: $0 "$FICHIER" leaks <USINE>"
