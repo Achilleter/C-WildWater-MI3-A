@@ -309,7 +309,7 @@ void ecrire_fichier_histo( Usine *tab_max, int nmax,Usine *tab_min, int nmin,int
             else {
                 v = tab_max[i].vol_reel;
             }
-            fprintf(f, "%s %.2f max\n", tab_max[i].id, v);
+            fprintf(f, "%s,%.2f,max\n", tab_max[i].id, v);
         }
     }
     for (int i = 0; i < nmin; i++) {
@@ -324,7 +324,7 @@ void ecrire_fichier_histo( Usine *tab_max, int nmax,Usine *tab_min, int nmin,int
             else {
                 v = tab_min[i].vol_reel;
             }
-            fprintf(f, "%s %.2f min\n", tab_min[i].id, v);
+            fprintf(f, "%s,%.2f,min\n", tab_min[i].id, v);
         }
     }
     fclose(f);
