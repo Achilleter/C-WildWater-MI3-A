@@ -7,20 +7,28 @@
 
 #define MAX_ID 64
 
-typedef struct{
-	char id_usine[MAX_ID] ; //Colonne 1
-	char id_amont[MAX_ID] ; //Colonne 2
-	char id_aval[MAX_ID] ; //Colonne 3
-	float vol ; //Colonne 4 
-	float fuites ; //Colonne 5
+typedef struct{//informations du fichier
+	char id_usine[MAX_ID] ; 
+	char id_amont[MAX_ID] ; 
+	char id_aval[MAX_ID] ; 
+	float vol ; 
+	float fuites ;
 } Infos;
 
-typedef struct Noeud {
-    char id[MAX_ID];
-    float fuite;                 // % fuite du tronçon entrant
-    struct Noeud *enfants;        // premier enfant
-    struct Noeud *next;           // frère suivant
+typedef struct Noeud {//Noeud de l'arbre des fuites
+    char id[MAX_ID];              // identifiant du noeud
+    float fuite;
+    struct Noeud *enfants;
+    struct Noeud *next;
 } Noeud;
+
+typedef struct pAVLeak {//Structure de l'AVLeak
+    char id[MAX_ID];            // identifiant du noeud correspondant a l'AVLeak
+    Noeud *noeud;
+    int h;                      // hauteur du noeud
+    struct pAVLeak *fg;
+    struct pAVLeak *fd;
+} AVLeak;
 
 typedef struct s_pile{
     Infos infos;
@@ -34,15 +42,7 @@ typedef struct usine{
 	float vol_sources;
 	float vol_reel;
 	int hauteur;
-}Usine;
-
-typedef struct pAVLeak {
-    char id[MAX_ID];
-    Noeud *noeud;
-    int eq;
-    struct pAVLeak *fg;
-    struct pAVLeak *fd;
-} AVLeak;
+} Usine;
 
 typedef struct u_AVL {
     Usine u;
