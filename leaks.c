@@ -1,37 +1,67 @@
 #include "Principal.h"
 
-int taille(AVLeak *h) {
-    return h ? h->eq : 0;
+int taille(AVLeak *arbre) {
+    if (arbre != NULL) {
+        return arbre->eq;
+    }
+    else {
+        return 0;
+    }
 }
 
-AVLeak *rotation_droite(AVLeak *y) {
-    AVLeak *x = y->fg;
-    AVLeak *T2 = x->fd;
+AVLeak *rotation_droite(AVLeak *racine)
+{
+    AVLeak *nouvelle_racine;
+    AVLeak *sous_arbre_droit;
 
-    x->fd = y;
-    y->fg = T2;
+    /* Le fils gauche devient la nouvelle racine */
+    nouvelle_racine = racine->fg;
 
-    y->eq = max(taille(y->fg), taille(y->fd)) + 1;
-    x->eq = max(taille(x->fg), taille(x->fd)) + 1;
+    /* On conserve le sous-arbre droit de la nouvelle racine */
+    sous_arbre_droit = nouvelle_racine->fd;
 
-    return x;
+    /* Rotation */
+    nouvelle_racine->fd = racine;
+    racine->fg = sous_arbre_droit;
+
+    /* Mise à jour des hauteurs */
+    racine->eq = max(taille(racine->fg), taille(racine->fd)) + 1;
+    nouvelle_racine->eq = max(taille(nouvelle_racine->fg),
+                               taille(nouvelle_racine->fd)) + 1;
+
+    return nouvelle_racine;
 }
 
-AVLeak *rotation_gauche(AVLeak *x) {
-    AVLeak *y = x->fd;
-    AVLeak *T2 = y->fg;
+AVLeak *rotation_gauche(AVLeak *racine)
+{
+    AVLeak *nouvelle_racine;
+    AVLeak *sous_arbre_gauche;
 
-    y->fg = x;
-    x->fd = T2;
+    /* Le fils droit devient la nouvelle racine */
+    nouvelle_racine = racine->fd;
 
-    x->eq = max(taille(x->fg), taille(x->fd)) + 1;
-    y->eq = max(taille(y->fg), taille(y->fd)) + 1;
+    /* On conserve le sous-arbre gauche de la nouvelle racine */
+    sous_arbre_gauche = nouvelle_racine->fg;
 
-    return y;
+    /* Rotation */
+    nouvelle_racine->fg = racine;
+    racine->fd = sous_arbre_gauche;
+
+    /* Mise à jour des hauteurs */
+    racine->eq = max(taille(racine->fg), taille(racine->fd)) + 1;
+    nouvelle_racine->eq = max(taille(nouvelle_racine->fg),
+                               taille(nouvelle_racine->fd)) + 1;
+
+    return nouvelle_racine;
 }
 
-int equilibre(AVLeak *h) {
-    return h ? taille(h->fg) - taille(h->fd) : 0;
+int equilibre(AVLeak *arbre) {
+    if (arbre != NULL) {
+        return taille(arbre->fg) - taille(arbre->fd);
+    }
+    else{
+        return 0;
+    }
 }
 
 Noeud *creernoeud(const char *id) {
