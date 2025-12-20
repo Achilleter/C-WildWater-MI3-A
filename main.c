@@ -474,7 +474,7 @@ int main(int argc, char** argv) {
 	
 	clock_t end = clock();
 	double temps = (double)(end - start) / CLOCKS_PER_SEC;
-	printf("Temps CPU : %.6f secondes\n", temps);
+	printf("Temps CPU : %.6f miliseconde\n", temps*1000);
 	
 	
 	return 0;
