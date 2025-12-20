@@ -158,7 +158,7 @@ Noeud *verifFichier(const char *fichier, const char *id_usine, AVLeak **index, f
         i.fuites = strcmp(c5, "-") ? atof(c5) : -1;
         // pour récupérer le volume initial de l'usine
         if (verif_S_U(&i) && strcmp(c3, id_usine) == 0){
-            *vol_init = i.vol;
+            *vol_init = i.vol*(1 - i.fuites/100);
         }
         Noeud *amont = NULL, *aval = NULL;
 // Insertion des noeuds dans l'AVLeak selon le type d'embranchement
@@ -172,7 +172,7 @@ Noeud *verifFichier(const char *fichier, const char *id_usine, AVLeak **index, f
         if (amont && aval) {
             ajouteEnfants(amont, aval);
             if (i.fuites >= 0) {
-                aval->fuite = i.fuites;
+                amont->fuite = i.fuites;
             }
         }
 // Détermination de l'id de la racine
