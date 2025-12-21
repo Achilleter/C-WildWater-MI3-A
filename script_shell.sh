@@ -2,6 +2,13 @@
 # $1 : chemin du fichier de données
 # $2 : commande principale (histo / leaks / HELP)
 # $3 : option (max / src / real)
+
+# Vérification de la présence du fichier en argument
+if [[ $# -gt 3 ]]; then
+	echo "Trop d'argument"
+	exit 1
+fi
+
 FICHIER="$1" 
 
 if [[ ! -f $FICHIER ]];then

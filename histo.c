@@ -10,7 +10,7 @@
 //	HISTO MAX
 //parcours récursif pour récupérer les volumes max de vol_max
 void histo_maxMAX(AVL* Avl_U, Usine* tab_max) {
-	if (Avl_U == NULL) return;
+	if (Avl_U == NULL || tab_max == NULL ) return;
 
 	if (tab_max[0].id == NULL || Avl_U->u.vol_max > tab_max[0].vol_max) {
 		tab_max[0] = Avl_U->u;
@@ -31,7 +31,7 @@ void histo_maxMAX(AVL* Avl_U, Usine* tab_max) {
 
 //parcours récursif pour récupérer les volumes min de vol_max
 void histo_maxMIN(AVL* Avl_U, Usine* tab_min) {
-    if (Avl_U == NULL) return;
+    if (Avl_U == NULL || tab_min == NULL ) return;
 
     if (tab_min[49].id == NULL || Avl_U->u.vol_max < tab_min[49].vol_max){
     	if(tab_min[48].id == NULL) tab_min[48] = tab_min[49];
@@ -56,7 +56,7 @@ void histo_maxMIN(AVL* Avl_U, Usine* tab_min) {
 //	HISTO SRC
 //parcours récursif pour récupérer les volumes max de vol_sources
 void histo_srcMAX(AVL* Avl_U, Usine* tab_max) {
-	if (Avl_U == NULL) return;
+	if (Avl_U == NULL || tab_max == NULL ) return;
 
 	if (tab_max[0].id == NULL || Avl_U->u.vol_sources > tab_max[0].vol_sources) {
 		tab_max[0] = Avl_U->u;
@@ -77,7 +77,7 @@ void histo_srcMAX(AVL* Avl_U, Usine* tab_max) {
 
 //parcours récursif pour récupérer les volumes min de vol_sources
 void histo_srcMIN(AVL* Avl_U, Usine* tab_min) {
-    if (Avl_U == NULL) return;
+    if (Avl_U == NULL || tab_min == NULL ) return;
 
     if (tab_min[49].id == NULL || Avl_U->u.vol_sources < tab_min[49].vol_sources){
     	if(tab_min[48].id == NULL) tab_min[48] = tab_min[49];
@@ -102,7 +102,7 @@ void histo_srcMIN(AVL* Avl_U, Usine* tab_min) {
 //	HISTO REAL
 //parcours récursif pour récupérer les volumes max de vol_reel
 void histo_reelMAX(AVL* Avl_U, Usine* tab_max) {
-	if (Avl_U == NULL) return;
+	if (Avl_U == NULL || tab_max == NULL ) return;
 
 	if (tab_max[0].id == NULL || Avl_U->u.vol_reel > tab_max[0].vol_reel) {
 		tab_max[0] = Avl_U->u;
@@ -123,7 +123,7 @@ void histo_reelMAX(AVL* Avl_U, Usine* tab_max) {
 
 //parcours récursif pour récupérer les volumes min de vol_reel
 void histo_reelMIN(AVL* Avl_U, Usine* tab_min) {
-	if (Avl_U == NULL) return;
+	if (Avl_U == NULL || tab_min == NULL ) return;
 
 	if (tab_min[49].id == NULL || Avl_U->u.vol_reel < tab_min[49].vol_reel){
     	if(tab_min[48].id == NULL) tab_min[48] = tab_min[49];
@@ -150,6 +150,10 @@ void histo_reelMIN(AVL* Avl_U, Usine* tab_min) {
    type = 0 => vol_max, 1 => vol_sources, 2 => vol_reel
    ============================================================================================ */
 void ecrire_fichier_histo( Usine *tab_max, int nmax,Usine *tab_min, int nmin,int type){
+    if( tab_max == NULL || tab_min == NULL ){
+        printf("Erreur : tableaux d'usines invalides\n");
+        return;
+    }
     FILE *f = fopen("histo.dat", "w");
 	if (!f) {
         printf("Erreur : impossible de créer histo.dat\n");

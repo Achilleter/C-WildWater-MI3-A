@@ -73,6 +73,7 @@ bool verif_S_J( Infos* i ){
    ============================================================================================ */
 // Crée un nouveau nœud AVL
 AVL* creerAVL(const char* id){
+	if( id == NULL ) return NULL;
 	if (!id || id[0] == '\0') return NULL;
     AVL* n = malloc(sizeof(AVL));
     if(!n) exit(EXIT_FAILURE);
@@ -218,7 +219,7 @@ void libererAVL(AVL* a){
    Calcul des volumes et écriture du fichier histo.dat
    ============================================================================================ */
 void incrementationFICHIER( const char* nom , const char* arg1 , const char* arg2){
-
+	if( !nom || !arg1 || !arg2 ) return;
 	FILE* f = fopen( nom , "r" );
 	if( f == NULL ) {
 		printf("Erreur d'ouverture du fichier %s\n", nom);	
