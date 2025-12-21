@@ -1,21 +1,48 @@
 #include "Principal.h"
 
-int max(int a, int b) { return a > b ? a : b; }
-int min(int a, int b) { return a < b ? a : b; }
-int max3(int a, int b, int c) { return max(max(a, b), c);}
-int min3(int a, int b, int c) { return min(min(a, b), c);}
-//---------------------------------------------------------------------------------------------
-// Les fonctions suivantes vérifient les différentes lignes du fichier
-// Cette fonction vérifie : SOURCE -> USINE
-bool verif_S_U( Infos* i ){
-	return strcmp(i->id_usine, "-") == 0 && 
-	strcmp(i->id_amont, "-") != 0 && 
-	strcmp(i->id_aval, "-") != 0 && 
-	i->vol != -1.0 && 
-	i->fuites != -1.0;
+/* ============================================================================================
+   FONCTIONS UTILITAIRES MATHÉMATIQUES
+   Ces fonctions servent principalement au calcul des hauteurs et équilibres de l’AVL
+   ============================================================================================ */
+
+// Retourne le maximum entre deux entiers */
+int max(int a, int b) {
+    return a > b ? a : b;
 }
+
+// Retourne le minimum entre deux entiers 
+int min(int a, int b) {
+    return a < b ? a : b;
+}
+
+// Retourne le maximum entre trois entiers 
+int max3(int a, int b, int c) {
+    return max(max(a, b), c);
+}
+
+// Retourne le minimum entre trois entiers 
+int min3(int a, int b, int c) {
+    return min(min(a, b), c);
+}
+
+/* ============================================================================================
+   FONCTIONS DE VALIDATION DES LIGNES DU FICHIER
+   Elles permettent d’identifier le type de tronçon décrit par une ligne
+   ============================================================================================ */
+// Cette fonction vérifie : SOURCE -> USINE
+bool verif_S_U(Infos* i) {
+    if (!i) return false;
+    return
+        strcmp(i->id_usine, "-") == 0 &&
+        strcmp(i->id_amont, "-") != 0 &&
+        strcmp(i->id_aval, "-") != 0 &&
+        i->vol != -1.0 &&
+        i->fuites != -1.0;
+}
+
 // Cette fonction vérifie : USINE
 bool verif_U( Infos* i ){
+	if (!i) return false;
 	return strcmp(i->id_usine, "-")==0 && 
 	strcmp(i->id_amont, "-")!=0 && 
 	strcmp(i->id_aval, "-")==0 && 
@@ -24,6 +51,7 @@ bool verif_U( Infos* i ){
 }
 // Cette fonction vérifie : USINE->STOCKAGE
 bool verif_U_S( Infos* i ){
+    if (!i) return false;
 	return strcmp(i->id_usine, "-")==0 && 
 	strcmp(i->id_amont, "-")!=0 && 
 	strcmp(i->id_aval, "-")!=0 && 
@@ -32,14 +60,20 @@ bool verif_U_S( Infos* i ){
 }
 // Cette fonction vérifie : STOCKAGE->JONCTION
 bool verif_S_J( Infos* i ){
+    if (!i) return false;
 	return strcmp(i->id_usine, "-")!=0 && 
 	strcmp(i->id_amont, "-")!=0 && 
 	strcmp(i->id_aval, "-")!=0 && 
 	i->vol==-1.0 && 
 	i->fuites!=-1.0;
 } 
-//---------------------------------------------------------------------------------------------
+/* ============================================================================================
+   AVL : CRÉATION ET ROTATION
+   Chaque nœud représente une usine et stocke ses volumes
+   ============================================================================================ */
+// Crée un nouveau nœud AVL
 AVL* creerAVL(const char* id){
+	if (!id || id[0] == '\0') return NULL;
     AVL* n = malloc(sizeof(AVL));
     if(!n) exit(EXIT_FAILURE);
     n->u.id = malloc(strlen(id)+1);
@@ -52,8 +86,9 @@ AVL* creerAVL(const char* id){
     return n;
 }
 
-
+//Rotation simple gauche 
 AVL* rotationGauche(AVL* a){
+	if (!a || !a->fd) return a;
     AVL* p = a->fd;
     int eq_a = a->u.hauteur;
     int eq_p = p->u.hauteur;
@@ -64,7 +99,9 @@ AVL* rotationGauche(AVL* a){
     return p;
 }
 
+//Rotation simple droite
 AVL* rotationDroite(AVL* a){
+	if (!a || !a->fg) return a;
     AVL* p = a->fg;
     int eq_a = a->u.hauteur;
     int eq_p = p->u.hauteur;
@@ -75,17 +112,23 @@ AVL* rotationDroite(AVL* a){
     return p;
 }
 
+//Double rotation gauche
 AVL* doubleRotationGauche(AVL* a){
+	if (!a) return a;
     a->fd = rotationDroite(a->fd);
     return rotationGauche(a);
 }
 
+//Double rotation droite
 AVL* doubleRotationDroite(AVL* a){
+	if (!a) return a;
     a->fg = rotationGauche(a->fg);
     return rotationDroite(a);
 }
 
+//Rééquilibre un nœud AVL
 AVL* equilibrerAVL(AVL* a){
+	if (!a) return a;
     if(a->u.hauteur >= 2 && a->fd){
         if(a->fd->u.hauteur >= 0)
             return rotationGauche(a);
@@ -101,8 +144,9 @@ AVL* equilibrerAVL(AVL* a){
     return a;
 }
 
-
+//Insertion d’un identifiant dans l’AVL
 AVL* insertionAVL(AVL* a, const char* id, int* h){
+	if (!id || !h) return a;
     if(!a){
         *h = 1;
         return creerAVL(id);
@@ -129,15 +173,18 @@ AVL* insertionAVL(AVL* a, const char* id, int* h){
     return a;
 }
 
+//Recherche d’un identifiant dans l’AVL
 AVL* rechercherAVL(AVL* a, const char* id){
-    if(!a) return NULL;
+	if (!a || !id) return NULL;
     int cmp = strcmp(id, a->u.id);
     if(cmp == 0) return a;
     if(cmp < 0) return rechercherAVL(a->fg, id);
     return rechercherAVL(a->fd, id);
 }
 
+//Récupère une usine existante ou la crée si absente
 AVL* avoir_ou_création(AVL** racine, const char* id){
+	if (!racine || !id) return NULL;
     AVL* u = rechercherAVL(*racine, id);
     if(!u){
         int h = 0;
@@ -147,7 +194,7 @@ AVL* avoir_ou_création(AVL** racine, const char* id){
     return u;
 }
 
-
+//Affichage de l’AVL
 void afficherAVL(AVL* a){
     if(!a) return;
     afficherAVL(a->fg);
@@ -156,6 +203,7 @@ void afficherAVL(AVL* a){
     afficherAVL(a->fd);
 }
 
+//Libération complète de l’AVL
 void libererAVL(AVL* a){
 	if(!a) return;
 	libererAVL(a->fg);
@@ -163,8 +211,15 @@ void libererAVL(AVL* a){
 	free(a->u.id);
 	free(a);
 }
-// ---------------------------------------------------------------------------------------------
+/* ============================================================================================
+   FONCTIONS HISTOGRAMME
+   Ces fonctions parcourent l'AVL pour récupérer les plus grands et plus petits volumes
+   MAX / SRC / REAL
+   tab_max et tab_min servent à stocker les n premières usines max et min
+   ============================================================================================ */
+
 //	HISTO MAX
+//parcours récursif pour récupérer les volumes max de vol_max
 void histo_maxMAX(AVL* Avl_U, Usine* tab_max) {
 	if (Avl_U == NULL) return;
 
@@ -185,6 +240,7 @@ void histo_maxMAX(AVL* Avl_U, Usine* tab_max) {
 	histo_maxMAX(Avl_U->fd, tab_max);
 }
 
+//parcours récursif pour récupérer les volumes min de vol_max
 void histo_maxMIN(AVL* Avl_U, Usine* tab_min) {
     if (Avl_U == NULL) return;
 
@@ -207,7 +263,9 @@ void histo_maxMIN(AVL* Avl_U, Usine* tab_min) {
     histo_maxMIN(Avl_U->fg, tab_min);
     histo_maxMIN(Avl_U->fd, tab_min);
 }
+
 //	HISTO SRC
+//parcours récursif pour récupérer les volumes max de vol_sources
 void histo_srcMAX(AVL* Avl_U, Usine* tab_max) {
 	if (Avl_U == NULL) return;
 
@@ -228,6 +286,7 @@ void histo_srcMAX(AVL* Avl_U, Usine* tab_max) {
 	histo_srcMAX(Avl_U->fd, tab_max);
 }
 
+//parcours récursif pour récupérer les volumes min de vol_sources
 void histo_srcMIN(AVL* Avl_U, Usine* tab_min) {
     if (Avl_U == NULL) return;
 
@@ -250,7 +309,9 @@ void histo_srcMIN(AVL* Avl_U, Usine* tab_min) {
     histo_srcMIN(Avl_U->fg, tab_min);
     histo_srcMIN(Avl_U->fd, tab_min);
 }
+
 //	HISTO REAL
+//parcours récursif pour récupérer les volumes max de vol_reel
 void histo_reelMAX(AVL* Avl_U, Usine* tab_max) {
 	if (Avl_U == NULL) return;
 
@@ -271,6 +332,7 @@ void histo_reelMAX(AVL* Avl_U, Usine* tab_max) {
 	histo_reelMAX(Avl_U->fd, tab_max);
 }
 
+//parcours récursif pour récupérer les volumes min de vol_reel
 void histo_reelMIN(AVL* Avl_U, Usine* tab_min) {
 	if (Avl_U == NULL) return;
 
@@ -293,10 +355,18 @@ void histo_reelMIN(AVL* Avl_U, Usine* tab_min) {
     histo_reelMIN(Avl_U->fg, tab_min);
     histo_reelMIN(Avl_U->fd, tab_min);
 }
-// ---------------------------------------------------------------------------------------------
+/* ============================================================================================
+   ÉCRITURE DU FICHIER HISTOGRAMME
+   tab_max et tab_min contiennent les usines max et min respectivement
+   type = 0 => vol_max, 1 => vol_sources, 2 => vol_reel
+   ============================================================================================ */
 void ecrire_fichier_histo( Usine *tab_max, int nmax,Usine *tab_min, int nmin,int type){
     FILE *f = fopen("histo.dat", "w");
-    
+	if (!f) {
+        printf("Erreur : impossible de créer histo.dat\n");
+        return;
+    }
+    // Écriture des valeurs maximales
     for (int i = 0; i < nmax; i++) {
         if (tab_max[i].id != NULL) {
             double v;
@@ -312,6 +382,7 @@ void ecrire_fichier_histo( Usine *tab_max, int nmax,Usine *tab_min, int nmin,int
             fprintf(f, "%s,%.2f,max\n", tab_max[i].id, v);
         }
     }
+    // Écriture des valeurs minimales
     for (int i = 0; i < nmin; i++) {
         if (tab_min[i].id != NULL) {
             double v;
@@ -329,7 +400,11 @@ void ecrire_fichier_histo( Usine *tab_max, int nmax,Usine *tab_min, int nmin,int
     }
     fclose(f);
 }
-// ---------------------------------------------------------------------------------------------
+/* ============================================================================================
+   INCRÉMENTATION DU FICHIER DE DONNÉES
+   Lecture du fichier d’usines et création de l’AVL
+   Calcul des volumes et écriture du fichier histo.dat
+   ============================================================================================ */
 void incrementationFICHIER( const char* nom , const char* arg1 , const char* arg2){
 
 	FILE* f = fopen( nom , "r" );
@@ -359,6 +434,7 @@ void incrementationFICHIER( const char* nom , const char* arg1 , const char* arg
 		int ch;
 		while ((ch = fgetc(f)) != '\n' && ch != EOF); // Nous permet de prendre la ligne au complet & fgetc nous permet de lire le caractère suivant sur la ligne
 		
+        // Stockage dans la structure Infos
 		strncpy( i.id_usine , c1, 64 );
 		i.id_usine[63] = '\0';
 
@@ -371,6 +447,7 @@ void incrementationFICHIER( const char* nom , const char* arg1 , const char* arg
 		i.vol = (strcmp( c4 , "-" )==0) ? -1.0 : atof(c4) ;
 		i.fuites = (strcmp( c5 , "-" )==0) ? -1.0 : atof(c5) ;
 		
+        // Traitement des lignes selon le type
 		if(verif_U(&i)){
 		    AVL * v = avoir_ou_création(&u, i.id_amont);
 		    v->u.vol_max += i.vol;
@@ -381,6 +458,7 @@ void incrementationFICHIER( const char* nom , const char* arg1 , const char* arg
 		    v->u.vol_reel += i.vol * (1 - i.fuites/100);
 		}	
 	}
+    // Selon le type demandé, remplir les histogrammes
 	if (strcmp(arg1, "histo") == 0) {
 			if (strcmp(arg2, "max") == 0) {
 				Usine tab_max[10];
@@ -448,18 +526,21 @@ void incrementationFICHIER( const char* nom , const char* arg1 , const char* arg
 	fclose(f);
 	libererAVL(u);
 }
-// ---------------------------------------------------------------------------------------------
+/* ============================================================================================
+   FONCTION MAIN
+   ============================================================================================ */
 int main(int argc, char** argv) {
 	
-	clock_t start = clock();
+	clock_t start = clock(); // début chronométrage
 
 	if (argc < 4) {
 		fprintf(stderr, "Usage: %s \n", argv[0]);
 		return 0;
 	}
-	const char *name = argv[1];
-	const char *fonction = argv[2];
-	const char *details = argv[3];
+    const char* name = argv[1];      // nom fichier
+    const char* fonction = argv[2];  // histo ou leaks
+    const char* details = argv[3];   // type spécifique (max, src, real, id usine)
+
 	
 	
 	if( strcmp(fonction, "leaks") == 0 ){
@@ -472,7 +553,7 @@ int main(int argc, char** argv) {
 		incrementationFICHIER(name, fonction , details );
 	}
 	
-	clock_t end = clock();
+	clock_t end = clock(); // fin chronométrage
 	double temps = (double)(end - start) / CLOCKS_PER_SEC;
 	printf("Temps CPU : %.6f miliseconde\n", temps*1000);
 	
