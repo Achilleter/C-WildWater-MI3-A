@@ -5,9 +5,9 @@ Projet d’algorithmique en C — Pré-Ingénieur CY Tech, Semestre 3
 
 ## 👥 Collaborateurs
 
-• Bernard Alexandre
-• Dumaire Alexis
-• Therin Achille
+• Bernard Alexandre  
+• Dumaire Alexis  
+• Therin Achille  
 
 ## 📄 Description du projet
 ## 📌 Objectifs
