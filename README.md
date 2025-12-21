@@ -22,9 +22,9 @@ Dans un premier temps, le programme permet la génération d’histogrammes bas�
 
 À partir de cet AVL, des informations sont extraites afin de construire trois histogrammes :
 
-• histo max : volume maximal de traitement de l’usine
-• histo src : volume total capté par les sources
-• histo real : volume total réellement traité
+• histo max : volume maximal de traitement de l’usine  
+• histo src : volume total capté par les sources  
+• histo real : volume total réellement traité  
 
 ## 💧 Calcul des fuites
 
@@ -48,18 +48,18 @@ Lorsque certaines valeurs sont absentes, le caractère - est utilisé.
 Tout d’abord, utilisez le Makefile fourni :
 make
 
-Ensuite, accordez les permissions d’exécution au script Shell :
+Ensuite, accordez les permissions d’exécution au script Shell :  
 chmod u+x script_shell.sh
 
 Exécutez le script selon l’opération souhaitée :
 
 💧 Calcul des fuites
-./script_shell.sh "c-wildwater_v3.dat" leaks "nom_usine"
-👉 nom_usine correspond à l’identifiant de l’usine à analyser.
+./script_shell.sh "c-wildwater_v3.dat" leaks "nom_usine"  
+👉 nom_usine correspond à l’identifiant de l’usine à analyser.  
 
 📊 Génération des histogrammes
-./script_shell.sh "c-wildwater_v3.dat" histo max
-./script_shell.sh "c-wildwater_v3.dat" histo src
-./script_shell.sh "c-wildwater_v3.dat" histo real
+./script_shell.sh "c-wildwater_v3.dat" histo max  
+./script_shell.sh "c-wildwater_v3.dat" histo src  
+./script_shell.sh "c-wildwater_v3.dat" histo real  
 
 ⏳ Il ne vous reste plus qu’à patienter et observer les résultats !
