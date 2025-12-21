@@ -86,19 +86,19 @@ void incrementationFICHIER( const char* nom , const char* arg1 , const char* arg
 // ------------------------------------------------------------------------------------
 //	DEF FONCTION LEAKS.C
 // ------------------------------------------------------------------------------------
-int taille(AVLeak *h);
-AVLeak *rotation_droite(AVLeak *y);
-AVLeak *rotation_gauche(AVLeak *x);
-int equilibre(AVLeak *h);
+int tailleAvleak(AVLeak *h);
+AVLeak *rotation_droiteAvleak(AVLeak *y);
+AVLeak *rotation_gaucheAvleak(AVLeak *x);
+int equilibreAvleak(AVLeak *h);
 Noeud *creernoeud(const char *id);
-AVLeak *rotation(AVLeak *avl, const char *id);
-AVLeak *insertavl(AVLeak *avl, const char *id, Noeud **noeud);
-Noeud *rechercheavl(AVLeak *avl, const char *id);
+AVLeak *rotationAvleak(AVLeak *avl, const char *id);
+AVLeak *insertAvleak(AVLeak *avl, const char *id, Noeud **noeud);
+Noeud *rechercheAvleak(AVLeak *avl, const char *id);
 void ajouteEnfants(Noeud *parent, Noeud *enfant, float fuite);
 Noeud *verifFichier(const char *fichier, const char *id_usine, AVLeak **index, float *vol_init);
 int nbrEnfant(Noeud *n);
 float calculerFuites(Noeud *n, float volume);
 void freearbre(Noeud *n);
-void freeavl(AVLeak *avl);
+void freeAvleak(AVLeak *avl);
 void faire_leak(const char* nomFICHIER, const char* nomUSINE);
 // ------------------------------------------------------------------------------------

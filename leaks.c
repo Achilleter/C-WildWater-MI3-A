@@ -1,6 +1,6 @@
 #include "Principal.h"
 
-int taille(AVLeak *arbre) { //Donne la hauteur de l'arbre
+int tailleAvleak(AVLeak *arbre) { //Donne la hauteur de l'arbre
 	if (arbre != NULL) {
 		return arbre->h;
 	}
@@ -9,7 +9,7 @@ int taille(AVLeak *arbre) { //Donne la hauteur de l'arbre
 	}
 }
 
-AVLeak *rotation_droite(AVLeak *racine) {//Rotation droite des avleaks
+AVLeak *rotation_droiteAvleak(AVLeak *racine) {//Rotation droite des avleaks
 	if (!racine || !racine->fg) {
 		return racine;
 	}
@@ -23,12 +23,12 @@ AVLeak *rotation_droite(AVLeak *racine) {//Rotation droite des avleaks
 	nouvelle_racine->fd = racine;
 	racine->fg = sous_arbre_droit;
 	// Mise à jour des hauteurs
-	racine->h = max(taille(racine->fg), taille(racine->fd)) + 1;
-	nouvelle_racine->h = max(taille(nouvelle_racine->fg), taille(nouvelle_racine->fd)) + 1;
+	racine->h = max(tailleAvleak(racine->fg), tailleAvleak(racine->fd)) + 1;
+	nouvelle_racine->h = max(tailleAvleak(nouvelle_racine->fg), tailleAvleak(nouvelle_racine->fd)) + 1;
 	return nouvelle_racine;
 }
 
-AVLeak *rotation_gauche(AVLeak *racine) {//Rotation gauche des avleaks
+AVLeak *rotation_gaucheAvleak(AVLeak *racine) {//Rotation gauche des avleaks
 	if (!racine || !racine->fd) {
 		return racine;
 	}
@@ -42,14 +42,14 @@ AVLeak *rotation_gauche(AVLeak *racine) {//Rotation gauche des avleaks
 	nouvelle_racine->fg = racine;
 	racine->fd = sous_arbre_gauche;
 	// Mise à jour des hauteurs
-	racine->h = max(taille(racine->fg), taille(racine->fd)) + 1;
-	nouvelle_racine->h = max(taille(nouvelle_racine->fg), taille(nouvelle_racine->fd)) + 1;
+	racine->h = max(tailleAvleak(racine->fg), tailleAvleak(racine->fd)) + 1;
+	nouvelle_racine->h = max(tailleAvleak(nouvelle_racine->fg), tailleAvleak(nouvelle_racine->fd)) + 1;
 	return nouvelle_racine;
 }
 
-int equilibre(AVLeak *arbre) {//renvoie le facteur d'équilibre
+int equilibreAvleak(AVLeak *arbre) {//renvoie le facteur d'équilibre
 	if (arbre != NULL) {
-		return taille(arbre->fg) - taille(arbre->fd);
+		return tailleAvleak(arbre->fg) - tailleAvleak(arbre->fd);
 	}
 	else{
 		return 0;
@@ -73,31 +73,31 @@ Noeud *creernoeud(const char *id) { // Fabrique le Noeud à partir de l'id Usine
 
 
 
-AVLeak *rotation(AVLeak *avl, const char *id) {//effectue les rotations nécessaires pour équilibrer l'AVLeak
-	avl->h = 1 + max(taille(avl->fg), taille(avl->fd));
-	int h = equilibre(avl);
+AVLeak *rotationAvleak(AVLeak *avl, const char *id) {//effectue les rotations nécessaires pour équilibrer l'AVLeak
+	avl->h = 1 + max(tailleAvleak(avl->fg), tailleAvleak(avl->fd));
+	int h = equilibreAvleak(avl);
 	// Rotation droite
 	if (h > 1 && strcmp(id, avl->fg->id) < 0) {
-		return rotation_droite(avl);
+		return rotation_droiteAvleak(avl);
 	}
 	// Rotation gauche
 	if (h < -1 && strcmp(id, avl->fd->id) > 0) {
-		return rotation_gauche(avl);
+		return rotation_gaucheAvleak(avl);
 	}
 	// Double rotation gauche-droite
 	if (h > 1 && strcmp(id, avl->fg->id) > 0) {
-		avl->fg = rotation_gauche(avl->fg);
-		return rotation_droite(avl);
+		avl->fg = rotation_gaucheAvleak(avl->fg);
+		return rotation_droiteAvleak(avl);
 	}
 	// Double rotation droite-gauche
 	if (h < -1 && strcmp(id, avl->fd->id) < 0) {
-		avl->fd = rotation_droite(avl->fd);
-		return rotation_gauche(avl);
+		avl->fd = rotation_droiteAvleak(avl->fd);
+		return rotation_gaucheAvleak(avl);
 	}
 	return avl;
 }
 
-AVLeak *insertavl(AVLeak *avl, const char *id, Noeud **noeud) {//Insertion dans l'AVLeak
+AVLeak *insertAvleak(AVLeak *avl, const char *id, Noeud **noeud) {//Insertion dans l'AVLeak
 	if (!avl) {
 		AVLeak *avltmp = malloc(sizeof(AVLeak));
 	if (!avltmp) {
@@ -116,21 +116,21 @@ AVLeak *insertavl(AVLeak *avl, const char *id, Noeud **noeud) {//Insertion dans 
 	}
 	//recherche de la position d'insertion
 	if (strcmp(id, avl->id) < 0) {
-		avl->fg = insertavl(avl->fg, id, noeud);
+		avl->fg = insertAvleak(avl->fg, id, noeud);
 	}
 	else if (strcmp(id, avl->id) > 0) {
-		avl->fd = insertavl(avl->fd, id, noeud);
+		avl->fd = insertAvleak(avl->fd, id, noeud);
 	}
 	else {
 		*noeud = avl->noeud;
 		return avl;
 	}
 	//équilibrage de l'AVLeak
-	avl=rotation(avl,id);
+	avl=rotationAvleak(avl,id);
 	return avl;
 }
 
-Noeud *rechercheavl(AVLeak *avl, const char *id) {//Recherche d'un id dans l'AVLeak
+Noeud *rechercheAvleak(AVLeak *avl, const char *id) {//Recherche d'un id dans l'AVLeak
 	if (!avl) {
 		return NULL;
 	}
@@ -139,9 +139,9 @@ Noeud *rechercheavl(AVLeak *avl, const char *id) {//Recherche d'un id dans l'AVL
 		return avl->noeud;
 	}
 	if (cmp < 0) {
-		return rechercheavl(avl->fg, id);
+		return rechercheAvleak(avl->fg, id);
 	}
-	return rechercheavl(avl->fd, id);
+	return rechercheAvleak(avl->fd, id);
 }
 
 void ajouteEnfants(Noeud *parent, Noeud *enfant, float fuite) { // Stocke les fuites par rapport à un amont et un aval
@@ -181,10 +181,10 @@ Noeud *verifFichier(const char *fichier, const char *id_usine, AVLeak **index, f
 		Noeud *amont = NULL, *aval = NULL;
 		// Insertion des noeuds dans l'AVLeak selon le type d'embranchement
 		if (strcmp(c2, "-") != 0){
-			*index = insertavl(*index, c2, &amont);
+			*index = insertAvleak(*index, c2, &amont);
 		}
 		if (strcmp(c3, "-") != 0){
-			*index = insertavl(*index, c3, &aval);
+			*index = insertAvleak(*index, c3, &aval);
 		}
 
 		if (amont && aval) {
@@ -240,25 +240,21 @@ float calculerFuites(Noeud *n, float volume) { // Parcours la totalité des noeu
 
 void freearbre(Noeud *n) { //Libère les noeuds
 	if (!n) return;
-
 	Enfant *e = n->enfants;
 	while (e) {
 		Enfant *suiv = e->suivant;
 		free(e);
 		e = suiv;
 	}
-
 	n->enfants = NULL;
 }
 
 
 
-void freeavl(AVLeak *avl) { //Libère l'AVL
+void freeAvleak(AVLeak *avl) { //Libère l'AVL
 	if (!avl) return;
-
-	freeavl(avl->fg);
-	freeavl(avl->fd);
-
+	freeAvleak(avl->fg);
+	freeAvleak(avl->fd);
 	free(avl->noeud);  
 	free(avl);
 }
@@ -273,12 +269,12 @@ void faire_leak(const char* nomFICHIER, const char* nomUSINE) {//Fonction princi
 	//vérification de la validité de la racine (et donc de l'arbre)
 	if (!racine) {
 		printf("fuites = -1\n");
-		freeavl(index);
+		freeAvleak(index);
 		return exit(EXIT_FAILURE);
 	}
 	//calcul des pertes totales à partir des arbres
 	float pertes = calculerFuites(racine, volume_initial);
 	printf("Pertes totales pour l'usine %s : %.3f k.m³\n", nomUSINE, pertes);
 	freearbre(racine);
-	freeavl(index);
+	freeAvleak(index);
 }
