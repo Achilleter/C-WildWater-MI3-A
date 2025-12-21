@@ -10,6 +10,9 @@ int taille(AVLeak *arbre) { //Donne la hauteur de l'arbre
 }
 
 AVLeak *rotation_droite(AVLeak *racine) {//Rotation droite des avleaks
+	if (!racine || !racine->fg) {
+		return racine;
+	}
 	AVLeak *nouvelle_racine;
 	AVLeak *sous_arbre_droit;
 	// Le fils gauche devient la nouvelle racine 
@@ -26,6 +29,9 @@ AVLeak *rotation_droite(AVLeak *racine) {//Rotation droite des avleaks
 }
 
 AVLeak *rotation_gauche(AVLeak *racine) {//Rotation gauche des avleaks
+	if (!racine || !racine->fd) {
+		return racine;
+	}
 	AVLeak *nouvelle_racine;
 	AVLeak *sous_arbre_gauche;
 	// Le fils droit devient la nouvelle racine 
@@ -140,6 +146,10 @@ Noeud *rechercheavl(AVLeak *avl, const char *id) {//Recherche d'un id dans l'AVL
 
 void ajouteEnfants(Noeud *parent, Noeud *enfant, float fuite) { // Stocke les fuites par rapport à un amont et un aval
 	Enfant *e = malloc(sizeof(Enfant));
+	if (!e) {
+		printf("Erreur allocation mémoire\n");
+		exit(EXIT_FAILURE);
+	}
 	e->noeud = enfant;
 	e->fuite = fuite;
 	e->suivant = parent->enfants;
@@ -196,6 +206,9 @@ Noeud *verifFichier(const char *fichier, const char *id_usine, AVLeak **index, f
 
 
 int nbrEnfant(Noeud *n) { // Calcul le nbr d'enfants
+	if(!n) {
+		return 0;
+	}
 	int i = 0;
 	for (Enfant *e = n->enfants; e != NULL; e = e->suivant) {
 		i++;
