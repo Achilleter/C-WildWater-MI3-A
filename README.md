@@ -58,6 +58,13 @@ Exécutez le script selon l’opération souhaitée :
 👉 nom_usine correspond à l’identifiant de l’usine à analyser.  
 
 📊 Génération des histogrammes  
+
+Il est important d'être sur d'avoir python d'installer sur son pc, sinon écrire :
+"pip install mathplotlib" si vous êtes sur Ubuntu
+Ou :
+"sudo apt update", Puis "sudo apt install python3-matplotlib" si vous êtes sur Debian(Pc de l'école)
+
+Enfin, écrire la commande selon ce que l'on veut :
 ./script_shell.sh "c-wildwater_v3.dat" histo max  
 ./script_shell.sh "c-wildwater_v3.dat" histo src  
 ./script_shell.sh "c-wildwater_v3.dat" histo real  
