@@ -2,7 +2,7 @@
 PROG = C-WILDWATER-MI3-A
 
 # Fichiers sources
-SRC = main.c leaks.c hiso.c utilitaire.c
+SRC = main.c leaks.c histo.c utilitaire.c
 
 # Options de compilation
 CFLAGS = -Wall -Wextra -g 
