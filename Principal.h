@@ -15,12 +15,17 @@ typedef struct{//informations du fichier
 	float fuites ;
 } Infos;
 
-typedef struct Noeud {//Noeud de l'arbre des fuites
-    char id[MAX_ID];              // identifiant du noeud
-    float fuite;
-    struct Noeud *enfants;
-    struct Noeud *next;
+typedef struct Enfant { //Structure qui va nous permettre de mieux calculer les fuites des usines
+	struct Noeud *noeud; // Pointeur vers aval
+	float fuite;	
+	struct Enfant *suivant; // Pointeur vers son enfant
+} Enfant;
+
+typedef struct Noeud {	
+    char id[MAX_ID];	
+    struct Enfant *enfants; // Liaisont avec les enfants
 } Noeud;
+
 
 typedef struct pAVLeak {//Structure de l'AVLeak
     char id[MAX_ID];            // identifiant du noeud correspondant a l'AVLeak
@@ -36,7 +41,7 @@ typedef struct s_pile{
     struct s_pile* next;
 } Pile;
 
-typedef struct usine{
+typedef struct usine{ // Nous permet de récupérer les infos d'une usine et de mieux les manipuler
 	char* id;
 	float vol_max;
 	float vol_sources;
@@ -44,7 +49,7 @@ typedef struct usine{
 	int hauteur;
 } Usine;
 
-typedef struct u_AVL {
+typedef struct u_AVL { // Arbre d'usine
     Usine u;
     struct u_AVL* fg;
     struct u_AVL* fd;
@@ -88,7 +93,7 @@ Noeud *creernoeud(const char *id);
 AVLeak *rotation(AVLeak *avl, const char *id);
 AVLeak *insertavl(AVLeak *avl, const char *id, Noeud **noeud);
 Noeud *rechercheavl(AVLeak *avl, const char *id);
-void ajouteEnfants(Noeud *parent, Noeud *enfant);
+void ajouteEnfants(Noeud *parent, Noeud *enfant, float fuite);
 Noeud *verifFichier(const char *fichier, const char *id_usine, AVLeak **index, float *vol_init);
 int nbrEnfant(Noeud *n);
 float calculerFuites(Noeud *n, float volume);
