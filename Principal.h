@@ -81,6 +81,7 @@ void histo_srcMAX(AVL* Avl_U, Usine* tab_max);
 void histo_srcMIN(AVL* Avl_U, Usine* tab_min);
 void histo_reelMAX(AVL* Avl_U, Usine* tab_max);
 void histo_reelMIN(AVL* Avl_U, Usine* tab_min);
+void ecrire_fichier_histo( Usine *tab_max, int nmax,Usine *tab_min, int nmin,int type);
 void incrementationFICHIER( const char* nom , const char* arg1 , const char* arg2);
 // ------------------------------------------------------------------------------------
 //	DEF FONCTION LEAKS.C
