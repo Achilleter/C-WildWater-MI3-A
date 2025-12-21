@@ -57,7 +57,7 @@ Exécutez le script selon l’opération souhaitée :
 ./script_shell.sh "c-wildwater_v3.dat" leaks "nom_usine"  
 👉 nom_usine correspond à l’identifiant de l’usine à analyser.  
 
-📊 Génération des histogrammes
+📊 Génération des histogrammes  
 ./script_shell.sh "c-wildwater_v3.dat" histo max  
 ./script_shell.sh "c-wildwater_v3.dat" histo src  
 ./script_shell.sh "c-wildwater_v3.dat" histo real  
